@@ -264,3 +264,23 @@ manual-file preservation, subprocess output, read-only validation, non-clobber
 pytest/mock templates, scoped dependency mocks, and a consumer fixture that
 confirms generated pytest tests fail until authored. GitHub Actions validates Python
 3.11–3.13 across Linux and Windows.
+
+
+## Phase 6: consumer validation and release preparation
+
+Phase 6 includes a full consumer lifecycle, authored business/regression
+evidence, wheel-build checks, portable CLI fixtures and a reproducible
+**full index versus persisted impact-with-freshness** benchmark.
+
+[Consumer adoption guide](AIDocumentation/CONSUMER_GUIDE.md) ·
+[Phase 6 evidence](AIDocumentation/PHASE_6_IMPLEMENTATION.md) ·
+[Release readiness checklist](AIDocumentation/RELEASE_CHECKLIST.md)
+
+```bash
+python -m pytest -q
+python benchmarks/benchmark_matma.py --modules 96 --iterations 3
+python -m build --wheel --no-isolation
+```
+
+This phase does **not** tag, license, publish to PyPI, or merge into `main`.
+The package remains version `0.1.0.dev0` until a separately authorized release.

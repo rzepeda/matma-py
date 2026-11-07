@@ -80,6 +80,9 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 6 — Consumer validation, portability and release preparation
 
+**Status:** Phase 6 candidate implementation committed for CI validation. Keep P6-01–P6-06 unchecked until the complete six-job Linux/Windows matrix, real wheel, and performance measurements are verified. See [Phase 6 report](PHASE_6_IMPLEMENTATION.md).
+
+
 - [ ] **P6-01** End-to-end installed consumer walkthrough: `index → scaffold → validate → impact → python -m pytest`; last step fails until generated placeholders are authored.
 - [ ] **P6-02** Linux/Windows CI matrix, Python versions, path/separator/case/CRLF normalization, symlink safety and CLI snapshot tests.
 - [ ] **P6-03** Unit, interaction and business tests for MATMA itself, with meaningful assertions, plus explicit registry/regression behavior tests.
