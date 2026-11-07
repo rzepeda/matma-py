@@ -76,3 +76,14 @@ Successful output has the stable common keys `command`, `status`, `message`, `ex
 ## Out of scope
 
 Phase 6 includes end-to-end adoption documentation and release preparation, more complete portability/benchmark evidence and performance claims. Dynamic Python runtime dependencies are not guessed; users should supplement static selections with registered business/regression workflows.
+
+
+### CI-discovered freshness correction
+
+The initial Phase 5 CI run found that Phase 3 was also watching the project root
+for `src/`-layout projects. Running pytest in a consumer created
+`.pytest_cache/` next to `src/` and incorrectly invalidated the source index.
+The directory inventory now watches only the explicitly configured source roots
+and their nested indexed folders (including `.` only for a flat source-root `.`).
+An actual change to a known source file or tracked source folder still requires reindexing.
+Regression fixtures cover both the inventory policy and the real CLI workflow.

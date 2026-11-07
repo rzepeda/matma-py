@@ -118,12 +118,21 @@ def fingerprint_inputs(project_root: Path, files: list[dict[str, Any]],
 
 
 def _directory_inventory(root: Path, sources: list[dict[str, str]], source_roots: list[str]) -> list[dict[str, Any]]:
+    """Watch only configured source trees, not unrelated project ancestors.
+
+    Watching the repository root for a `src/` project causes false stale
+    indexes whenever pytest, an IDE or another tool creates `.pytest_cache/`
+    beside the source root. A flat source-root `.` legitimately tracks `.`.
+    """
+    roots = {Path(name) for name in source_roots}
     directories = set(source_roots)
     for item in sources:
         cursor = Path(item["source_file"]).parent
         while True:
+            if not any(cursor == selected or selected in cursor.parents for selected in roots):
+                break
             directories.add(cursor.as_posix())
-            if cursor == Path(".") or cursor.parent == cursor:
+            if cursor in roots or cursor.parent == cursor:
                 break
             cursor = cursor.parent
     found = []

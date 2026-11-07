@@ -281,3 +281,14 @@ def test_explicit_source_root_mismatch_refuses_old_index(tmp_path: Path):
 def test_custom_test_root_must_match_index(tmp_path: Path):
     fixture_project(tmp_path)
     assert impact(tmp_path, tests_root="qa")["error_code"] == "missing_index"
+
+
+def test_index_directory_inventory_ignores_non_source_project_root(tmp_path: Path):
+    from matma.indexing.manifests import _directory_inventory
+
+    write(tmp_path, "src/pkg/worker.py", "def work(): pass\n")
+    sources = [{"source_file": "src/pkg/worker.py", "sha256": "unused-in-directory-inventory"}]
+    watched = _directory_inventory(tmp_path, sources, ["src"])
+    assert {entry["path"] for entry in watched} == {"src", "src/pkg"}
+    watched_flat = _directory_inventory(tmp_path, sources, ["."])
+    assert "." in {entry["path"] for entry in watched_flat}

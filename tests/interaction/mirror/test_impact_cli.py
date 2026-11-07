@@ -131,3 +131,14 @@ def test_indexing_failure_does_not_create_invalid_impact_metadata(tmp_path: Path
     assert result.returncode == 1
     assert data["error_code"] == "missing_index"
     assert not (tmp_path / "tests").exists()
+
+
+def test_pytest_cache_outside_source_root_does_not_make_index_stale(tmp_path: Path):
+    write(tmp_path, "src/service.py", "def compute(): return 4\n")
+    assert run(tmp_path, "index")[0].returncode == 0
+    # Normal pytest execution creates a project-root cache after indexing.
+    # This must not invalidate a source-root `src/` dependency index.
+    write(tmp_path, ".pytest_cache/CACHEDIR.TAG", "pytest cache\n")
+    selected, impact = run(tmp_path, "impact", "-f", "service")
+    assert selected.returncode == 0, selected.stdout + selected.stderr
+    assert impact["status"] == "impact_selected"
