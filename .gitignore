@@ -1,0 +1,18 @@
+# Python build and install artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Future MATMA-generated manifests only (hand-written test files stay tracked)
+/tests/mirror/**/*.auto.yaml
+/tests/mirror/.index.auto.yaml

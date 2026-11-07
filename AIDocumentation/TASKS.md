@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Planning accepted; implementation not started.  
+**Status:** Phase 1 implemented and 32 local tests passed; Linux/Windows GitHub Actions verification is pending.  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -19,11 +19,11 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 1 — Installable Python package and CLI
 
-- [ ] **P1-01** Add `pyproject.toml` with package identity `matma-py`, Python >=3.11, dependencies, build backend and `[project.scripts]` `matma-indexer = "matma.cli:main"`.
-- [ ] **P1-02** Introduce `src/matma/` package and command entrypoints: `index`, `validate`, `scaffold`, `impact`.
-- [ ] **P1-03** Parse and validate shared flags, source-root overrides and output formats; provide stable JSON result/diagnostics and exit codes.
-- [ ] **P1-04** Create pytest suite and isolated consumer fixture that installs the package and verifies CLI discovery/help/errors.
-- [ ] **P1-05** Add initial GitHub Actions for Python compatibility on Linux and Windows.
+- [x] **P1-01** Add `pyproject.toml` with package identity `matma-py`, Python >=3.11, dependencies, build backend and `[project.scripts]` `matma-indexer = "matma.cli:main"`.
+- [x] **P1-02** Introduce `src/matma/` package and command entrypoints: `index`, `validate`, `scaffold`, `impact`.
+- [x] **P1-03** Parse and validate shared flags, source-root overrides and output formats; provide stable JSON result/diagnostics and exit codes.
+- [x] **P1-04** Create pytest suite and isolated consumer fixture that installs the package and verifies CLI discovery/help/errors.
+- [ ] **P1-05** Added the initial Linux/Windows and Python 3.11–3.13 GitHub Actions matrix. **Pending:** verify the actual GitHub Actions run before marking complete.
 - **Exit criterion:** install + CLI help/options work in a real consumer; unimplemented commands never report success.
 
 ## Phase 2 — Module and symbol discovery
