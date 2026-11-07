@@ -17,7 +17,9 @@ from matma.indexing.manifests import HEADER, SCHEMA_VERSION
 def write(root: Path, name: str, data: str) -> Path:
     out = root / name
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(data, encoding="utf-8")
+    # Exact newline bytes matter: the fixture's SHA-256 is calculated from LF
+    # strings and Windows text mode would otherwise emit CRLF on disk.
+    out.write_text(data, encoding="utf-8", newline="\\n")
     return out
 
 

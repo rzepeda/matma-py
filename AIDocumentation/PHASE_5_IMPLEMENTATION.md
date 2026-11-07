@@ -95,3 +95,11 @@ in the no-reparse test could also break pytest/Python's traceback formatting.
 The guard is now contained within a context manager, records unexpected AST
 calls, and always restores Python's standard parser before pytest assertions.
 The production impact reader still uses no AST parsing or subprocess invocation.
+
+### Cross-platform fixture hash correction
+
+Windows normalizes text-mode writes to CRLF by default. The artificial source
+fixture for the persisted-hash unit tests now writes explicit LF newlines so
+its calculated source hashes match the actual bytes on all six CI platforms.
+This does **not** normalize or modify real production source files: the
+production index always hashes actual raw source bytes as stored.
