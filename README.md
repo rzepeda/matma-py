@@ -222,5 +222,5 @@ dependencies, Level 2 must select the importing module's unit tests.
 layout and mirror mapping, path safety, real YAML regeneration and
 manual-file preservation, subprocess output, read-only validation, non-clobber
 pytest/mock templates, scoped dependency mocks, and a consumer fixture that
-confirms generated pytest tests fail until authored. GitHub Actions validates Python
-3.11–3.13 across Linux and Windows.
+confirms generated pytest tests fail until authored. The six-job GitHub Actions
+matrix passed on Python 3.11–3.13 across Linux and Windows ([run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)).

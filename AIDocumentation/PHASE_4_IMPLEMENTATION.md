@@ -1,6 +1,6 @@
 # MATMA Python — Phase 4: Pytest and unittest.mock Scaffolding
 
-**Status:** Implemented locally; GitHub Actions verification pending. This document will be updated with a passing run before marking Phase 4 complete.
+**Status:** Implemented and verified on 2026-11-07. **All six GitHub Actions jobs passed** on Python 3.11–3.13 across Linux/Windows ([run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)). 119 tests passed on Linux; 118 passed and 1 platform-specific skip on Windows.
 
 **Architecture:** [ADR-001](ARCHITECTURE_DECISIONS.md) and [implementation checklist](TASKS.md). This implementation builds on Phase 3's typed, full-project graph. It creates only missing, user-owned pytest and mock helper files; the source module remains the atomic unit.
 
@@ -73,6 +73,6 @@ Acceptance tests cover:
 - Real subprocess consumer: `index -> scaffold -> python -m pytest` explicitly fails for generated test placeholders; existing consumer-authored pytest tests remain independently executable.
 - Direct dependency-only mock files with full index persistence, plus lazy runtime spec loading and actual `unittest.mock` semantics.
 - Repeated generation, manual test changes/CRLF preservation, directory and symlink conflicts, unsafe path/casefold collision, preflight before manifests and read-only validation.
-- Full package and consumer suite on Python 3.11, 3.12 and 3.13 across Linux and Windows (CI matrix; pending verification).
+- Full package and installed consumer suite passed on Python 3.11, 3.12 and 3.13 across Linux and Windows ([verified CI run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)).
 
 **Not in scope:** Phase 5 impact query and selected test execution, comprehensive Python dynamic import analysis, generating passing business/regression tests, adding a pytest plugin, publishing a release. Generated failing tests demonstrate missing work, not verified application correctness.
