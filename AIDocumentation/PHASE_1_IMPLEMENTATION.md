@@ -47,3 +47,7 @@ Local recorded result: **32 passed**; the isolated consumer fixture performed pa
 - Phase 5 implements manifest-only impact selection and explicit business/regression registration.
 - Phase 6 verifies cross-platform robustness, benchmark and release readiness.
 - Do not mark GitHub matrix CI acceptance until actual workflows pass.
+
+## Cross-platform CI fix
+
+The first GitHub matrix exposed a real Python 3.12+ packaging nuance: those runner environments did not provide `setuptools` in the execution environment. The consumer smoke test deliberately uses `pip --no-build-isolation --no-index`, so `setuptools>=69` is an explicit **development dependency** to make the package wheel build reproducible without fetching packages during the test. The package still uses normal isolated PEP 517 builds for users.
