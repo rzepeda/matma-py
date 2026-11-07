@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Phases 1–5 implemented and CI-verified. Phase 5 passed **153 tests on Linux** and **152 passed, 1 skipped on Windows** across Python 3.11–3.13 ([six-job CI run 42405857265](https://github.com/rzepeda/matma-py/actions/runs/42405857265)).  
+**Status:** All six MATMA Python implementation phases are complete and CI-verified. The Phase 6 implementation passed **163 tests on Linux** and **161 passed, 2 skipped on Windows** across Python 3.11–3.13 ([six-job CI run 42407788706](https://github.com/rzepeda/matma-py/actions/runs/42407788706)). Package remains version `0.1.0.dev0`; no tag, license grant or publication is implied.  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -80,12 +80,15 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 6 — Consumer validation, portability and release preparation
 
-- [ ] **P6-01** End-to-end installed consumer walkthrough: `index → scaffold → validate → impact → python -m pytest`; last step fails until generated placeholders are authored.
-- [ ] **P6-02** Linux/Windows CI matrix, Python versions, path/separator/case/CRLF normalization, symlink safety and CLI snapshot tests.
-- [ ] **P6-03** Unit, interaction and business tests for MATMA itself, with meaningful assertions, plus explicit registry/regression behavior tests.
-- [ ] **P6-04** Benchmark full AST indexing/YAML writes **separately** from persisted impact selection/freshness checks; report workload, timings and I/O caveats instead of guaranteeing O(1) total runtime.
-- [ ] **P6-05** README, adoption guide, troubleshooting and documented package/manifest formats; audit real pytest project compatibility.
-- [ ] **P6-06** Prepare semver release checklist without tagging or publishing until separately authorized.
+**Status:** Implemented, tested and CI-verified: [Phase 6 report](PHASE_6_IMPLEMENTATION.md) and [six passing Python 3.11–3.13 Linux/Windows jobs](https://github.com/rzepeda/matma-py/actions/runs/42407788706). Wheel inspection and the measured 96-module benchmark also passed. **Release approval remains separate.**
+
+
+- [x] **P6-01** End-to-end installed consumer walkthrough: `index → scaffold → validate → impact → python -m pytest`; last step fails until generated placeholders are authored.
+- [x] **P6-02** Linux/Windows CI matrix, Python versions, path/separator/case/CRLF normalization, symlink safety and CLI snapshot tests.
+- [x] **P6-03** Unit, interaction and business tests for MATMA itself, with meaningful assertions, plus explicit registry/regression behavior tests.
+- [x] **P6-04** Benchmark full AST indexing/YAML writes **separately** from persisted impact selection/freshness checks; report workload, timings and I/O caveats instead of guaranteeing O(1) total runtime.
+- [x] **P6-05** README, adoption guide, troubleshooting and documented package/manifest formats; audit real pytest project compatibility.
+- [x] **P6-06** Prepare semver release checklist without tagging or publishing until separately authorized.
 - **Exit criterion:** cross-platform CI and real consumer pass their intended acceptance tests; failing generated templates are verified to fail by design; release status is accurately documented.
 
 ## Rules for implementing the checklist

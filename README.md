@@ -5,7 +5,7 @@ module-mirrored tests and fast, persisted reverse-dependency impact selections.
 It adapts to the **host project's existing Python layout** rather than requiring
 one class per file or rewriting production source.
 
-## Status: Phase 5 — persisted impact selection and verification registry
+## Status: Phase 6 — implementation complete; development release not published
 
 The installable Python package implements **`validate`** (read-only structural
 analysis), **`index`** (full AST dependency indexing and manifests), and
@@ -23,7 +23,8 @@ No complete MATMA release has been published.
 [Phase 2 implementation](AIDocumentation/PHASE_2_IMPLEMENTATION.md) ·
 [Phase 3 implementation](AIDocumentation/PHASE_3_IMPLEMENTATION.md) ·
 [Phase 4 implementation](AIDocumentation/PHASE_4_IMPLEMENTATION.md) ·
-[Phase 5 implementation](AIDocumentation/PHASE_5_IMPLEMENTATION.md)
+[Phase 5 implementation](AIDocumentation/PHASE_5_IMPLEMENTATION.md) ·
+[Phase 6 implementation](AIDocumentation/PHASE_6_IMPLEMENTATION.md)
 
 ## Compatibility
 
@@ -264,3 +265,29 @@ manual-file preservation, subprocess output, read-only validation, non-clobber
 pytest/mock templates, scoped dependency mocks, and a consumer fixture that
 confirms generated pytest tests fail until authored. GitHub Actions validates Python
 3.11–3.13 across Linux and Windows.
+
+
+## Phase 6: consumer validation and release preparation
+
+Phase 6 includes a full consumer lifecycle, authored business/regression
+evidence, wheel-build checks, portable CLI fixtures and a reproducible
+**full index versus persisted impact-with-freshness** benchmark.
+
+[Consumer adoption guide](AIDocumentation/CONSUMER_GUIDE.md) ·
+[Phase 6 evidence](AIDocumentation/PHASE_6_IMPLEMENTATION.md) ·
+[Release readiness checklist](AIDocumentation/RELEASE_CHECKLIST.md)
+
+```bash
+python -m pytest -q
+python benchmarks/benchmark_matma.py --modules 96 --iterations 3
+python -m build --wheel --no-isolation
+```
+
+This phase does **not** tag, license, publish to PyPI, or merge into `main`.
+The package remains version `0.1.0.dev0` until a separately authorized release.
+
+**CI evidence:** Six Linux/Windows Python 3.11–3.13 jobs passed in
+[run 42407788706](https://github.com/rzepeda/matma-py/actions/runs/42407788706).
+On the synthetic 96-module Linux/Python 3.13 benchmark, the median full warm
+index was **1,173.3 ms**, versus **84.5 ms** for impact with freshness checks
+(**13.9×** in that fixture; not a performance guarantee).

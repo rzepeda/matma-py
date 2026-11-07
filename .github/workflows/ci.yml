@@ -25,5 +25,16 @@ jobs:
         run: matma-indexer --help
       - name: Run package and consumer tests
         run: python -m pytest -q
+      - name: Verify source package syntax
+        run: python -m compileall -q src/matma
+      - name: Reproducible indexing and impact benchmark
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+        run: python benchmarks/benchmark_matma.py --modules 96 --iterations 3 --output matma-benchmark.json
+      - name: Upload benchmark evidence
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matma-benchmark-linux-py313
+          path: matma-benchmark.json
       - name: Check installed dependency consistency
         run: python -m pip check
