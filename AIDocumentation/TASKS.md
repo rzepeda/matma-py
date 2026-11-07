@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Phase 1 implemented and 32 local tests passed; Linux/Windows GitHub Actions verification is pending.  
+**Status:** Phases 1–2 implemented and CI-verified; Phase 2 passed 68 local tests and all six Linux/Windows jobs for Python 3.11–3.13 ([run 42393367584](https://github.com/rzepeda/matma-py/actions/runs/42393367584)).  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -28,12 +28,15 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 2 — Module and symbol discovery
 
-- [ ] **P2-01** Inventory Python files across configured project source roots; document exclusions, namespace packages, project-root identity and path safety.
-- [ ] **P2-02** Parse files with standard `ast`; record each module, top-level function, async function, class, method, and references, including line diagnostics.
-- [ ] **P2-03** Resolve static package/module identities, alias and relative imports, `__init__.py` exports/re-exports, `TYPE_CHECKING` contexts and collision diagnostics without executing source code.
-- [ ] **P2-04** Deterministically map **one source file to one unit and one interaction file**, plus a mock helper file and manifest. Never enforce a single class or class-name filename.
-- [ ] **P2-05** Implement read-only `validate`; strict `--check` rejects actual invalid/unsafe structures, not normal Python multi-class modules.
-- [ ] **P2-06** Test mixed classes/functions, async definitions, methods, nested functions, `__init__.py`, flat and `src/` projects, multiple source roots, Windows paths, and unsafe symlinks.
+**Status:** 6/6 tasks implemented and CI-verified. [Phase 2 implementation](PHASE_2_IMPLEMENTATION.md); [passing Linux/Windows CI](https://github.com/rzepeda/matma-py/actions/runs/42393367584). `validate` is read-only; `index`, `scaffold`, and `impact` remain unimplemented.
+
+
+- [x] **P2-01** Inventory Python files across configured project source roots; document exclusions, namespace packages, project-root identity and path safety.
+- [x] **P2-02** Parse files with standard `ast`; record each module, top-level function, async function, class, method, and references, including line diagnostics.
+- [x] **P2-03** Resolve static package/module identities, alias and relative imports, `__init__.py` exports/re-exports, `TYPE_CHECKING` contexts and collision diagnostics without executing source code.
+- [x] **P2-04** Deterministically map **one source file to one unit and one interaction file**, plus a mock helper file and manifest. Never enforce a single class or class-name filename.
+- [x] **P2-05** Implement read-only `validate`; strict `--check` rejects actual invalid/unsafe structures, not normal Python multi-class modules.
+- [x] **P2-06** Test mixed classes/functions, async definitions, methods, nested functions, `__init__.py`, flat and `src/` projects, multiple source roots, Windows paths, and unsafe symlinks.
 - **Exit criterion:** byte-stable inventories, correct symbol/file identity, no application code executed or modified.
 
 ## Phase 3 — Typed dependency graph and persisted index

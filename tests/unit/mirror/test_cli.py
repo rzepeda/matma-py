@@ -10,7 +10,7 @@ import yaml
 from matma.cli import COMMAND_PHASES, EXIT_NOT_IMPLEMENTED, EXIT_USAGE, main, make_parser
 
 
-@pytest.mark.parametrize("command", COMMAND_PHASES)
+@pytest.mark.parametrize("command", ["index", "scaffold", "impact"])
 def test_every_command_shell_reports_unimplemented(command: str, capsys: pytest.CaptureFixture[str]) -> None:
     argv = [command, "--format", "json"]
     if command == "impact":
@@ -45,7 +45,7 @@ def test_index_scaffold_flag_is_retained(capsys: pytest.CaptureFixture[str]) -> 
 
 
 def test_validate_strict_flag_and_target(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["validate", "-c", "-f", "acme.pricing", "-o", "json"]) == 2
+    assert main(["validate", "-c", "-f", "acme.pricing", "-o", "json"]) == 1
     opts = json.loads(capsys.readouterr().out)["options"]
     assert opts["check"] is True
     assert opts["target"] == "acme.pricing"
@@ -117,6 +117,6 @@ def test_no_command_mutates_the_consumer_project(tmp_path, monkeypatch: pytest.M
         args = [cmd, "--source-root", "src", "--tests-root", "tests"]
         if cmd == "impact":
             args += ["--target", "src/pricing.py"]
-        assert main(args) == EXIT_NOT_IMPLEMENTED
+        assert main(args) == (0 if cmd == "validate" else EXIT_NOT_IMPLEMENTED)
     after = sorted(str(p.relative_to(tmp_path)) for p in tmp_path.rglob("*"))
     assert after == before
