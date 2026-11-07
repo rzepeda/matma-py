@@ -1,8 +1,6 @@
 # MATMA Python — Phase 6: Consumer Validation, Portability, Benchmarks and Release Preparation
 
-**Status:** Implementation pending final CI verification; no tag, publication, or
-merge into `main` is performed by this phase. Prior accepted Python architecture
-is in [ADR-001](ARCHITECTURE_DECISIONS.md); milestones are in [TASKS.md](TASKS.md).
+**Status:** Implemented and CI-verified on 2026-11-07. **All six GitHub Actions jobs passed** across Python 3.11, 3.12 and 3.13 on Linux/Windows ([run 42407788706](https://github.com/rzepeda/matma-py/actions/runs/42407788706)). **163 pytest tests passed on Linux**, and **161 passed with two platform-specific skips on Windows**. No tag, publication, license grant or merge into `main` is performed by this phase. Prior accepted architecture is [ADR-001](ARCHITECTURE_DECISIONS.md); milestones are in [TASKS.md](TASKS.md).
 
 ## What Phase 6 adds
 
@@ -44,9 +42,16 @@ matching dependency density, disk speed, OS and file counts.
 
 ### Measurements
 
-**Pending:** record the exact passing GitHub Actions run and representative
-measured samples from Linux/Python 3.13. The CI benchmark emits JSON in the
-job log and publishes `matma-benchmark-linux-py313` as a downloadable artifact.
+**Measured in [CI run 42407788706](https://github.com/rzepeda/matma-py/actions/runs/42407788706) (Linux, Python 3.13.18), 96-module synthetic workload, 3 repetitions:**
+
+| Work | Samples (ms) | Median / measured value |
+| --- | --- | --- |
+| First cold full index | one run | **1,218.487 ms** |
+| Warm full AST + graph + YAML index | 1,173.326; 1,169.743; 1,173.470 | **1,173.326 ms** |
+| Persisted impact with SHA-256 + directory freshness | 84.073; 84.653; 84.543 | **84.543 ms** |
+| Warm index / impact median | — | **13.878×** in this fixture |
+
+The Level 2 impact selection affected **3 source modules** and correctly reported **6 expected but missing test-file paths**, not passing test coverage. See the [full CI job and benchmark artifact](https://github.com/rzepeda/matma-py/actions/runs/42407788706) (`matma-benchmark-linux-py313`). This synthetic result is not an SLA or proof of a universal speedup; timings vary by graph density, disk, interpreter and filesystem. Impact still reads/hashes all indexed source bytes and stats tracked source directories (O(N) freshness work).
 
 ## Portability, release readiness and acceptance
 
@@ -56,8 +61,5 @@ paths, case-sensitive versus case-insensitive filesystems, rejected symlinks,
 real `pytest.fail` placeholders and source-index freshness after test activity.
 The wheel build confirms all four engines and the CLI entry point are included.
 
-The accepted definition of completion is **six passing CI jobs on the final
-Phase 6 PR commit**, plus a documented benchmark and all P6 checkboxes updated
-only after evidence. Phase 6 is still *development validation*, not a tagged,
-licensed or published release. Publication is governed by
+The implementation commit passed **six CI jobs** and the reproducible benchmark; the P6 checklist is marked complete. The final documentation-only commit must also pass the matrix. Phase 6 remains *development validation*, not a tagged, licensed or published release. Publication is governed by
 [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) and requires separate authorization.
