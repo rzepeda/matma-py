@@ -1,6 +1,6 @@
 # MATMA Python — Phase 1 Package and CLI Foundation
 
-**Status:** Implemented; 32 local pytest checks passed on Python 3.13.5. GitHub Actions Linux/Windows checks are configured but were **not verified** at the time this document was written. Follow [TASKS.md](TASKS.md) for acceptance status.
+**Status:** Phase 1 implemented; 32 local pytest checks passed on Python 3.13.5 and **6/6 GitHub CI jobs passed** on Python 3.11–3.13 across Linux and Windows ([verified CI run](https://github.com/rzepeda/matma-py/actions/runs/42390809898)). Follow [TASKS.md](TASKS.md) for acceptance status.
 
 ## Deliverables
 
@@ -46,7 +46,7 @@ Local recorded result: **32 passed**; the isolated consumer fixture performed pa
 - Phase 4 implements honest failing mirrored test scaffolds and mock factories.
 - Phase 5 implements manifest-only impact selection and explicit business/regression registration.
 - Phase 6 verifies cross-platform robustness, benchmark and release readiness.
-- Do not mark GitHub matrix CI acceptance until actual workflows pass.
+- The six-job matrix is CI-verified. Feature branches are verified through pull requests; the push event targets `main` only to avoid duplicate CI runs per feature commit.
 
 ## Cross-platform CI fix
 

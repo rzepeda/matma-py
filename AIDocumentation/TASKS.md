@@ -23,7 +23,7 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 - [x] **P1-02** Introduce `src/matma/` package and command entrypoints: `index`, `validate`, `scaffold`, `impact`.
 - [x] **P1-03** Parse and validate shared flags, source-root overrides and output formats; provide stable JSON result/diagnostics and exit codes.
 - [x] **P1-04** Create pytest suite and isolated consumer fixture that installs the package and verifies CLI discovery/help/errors.
-- [ ] **P1-05** Added the initial Linux/Windows and Python 3.11–3.13 GitHub Actions matrix. **Pending:** verify the actual GitHub Actions run before marking complete.
+- [x] **P1-05** Added the initial Linux/Windows and Python 3.11–3.13 GitHub Actions matrix. **Verified:** all six Linux/Windows Python 3.11–3.13 jobs passed in [CI run 42390809898](https://github.com/rzepeda/matma-py/actions/runs/42390809898).
 - **Exit criterion:** install + CLI help/options work in a real consumer; unimplemented commands never report success.
 
 ## Phase 2 — Module and symbol discovery
