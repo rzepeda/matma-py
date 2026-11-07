@@ -5,19 +5,19 @@ module-mirrored tests and fast, persisted reverse-dependency impact selections.
 It adapts to the **host project's existing Python layout** rather than requiring
 one class per file or rewriting production source.
 
-## Status: Phase 2 — read-only AST validation
+## Status: Phase 3 — AST indexer and deterministic manifests
 
-The installable Python package now implements **`validate`**: structural
-source inventory, Python AST symbol/import analysis and deterministic mirror
-path resolution. It inspects existing code **without executing it** and
-without generating or modifying project files. `index`, `scaffold` and `impact`
-remain unimplemented and return exit `2`; the project has not published a
-complete MATMA release.
+The installable Python package implements **`validate`** (read-only structural
+analysis) and **`index`** (full AST dependency index and generated YAML
+manifests). Neither command executes application code or tests or writes
+production files. **`scaffold` and `impact` remain unimplemented** and return
+exit `2`; the project has not published a complete MATMA release.
 
 [Accepted architecture](AIDocumentation/ARCHITECTURE_DECISIONS.md) ·
 [Implementation checklist](AIDocumentation/TASKS.md) ·
 [Phase 1 implementation](AIDocumentation/PHASE_1_IMPLEMENTATION.md) ·
-[Phase 2 implementation](AIDocumentation/PHASE_2_IMPLEMENTATION.md)
+[Phase 2 implementation](AIDocumentation/PHASE_2_IMPLEMENTATION.md) ·
+[Phase 3 implementation](AIDocumentation/PHASE_3_IMPLEMENTATION.md)
 
 ## Compatibility
 
@@ -50,10 +50,12 @@ matma-indexer impact --target src/example/service.py --level 2 --format json
 python -m matma validate --check
 ```
 
-`validate` now returns `validated` (exit `0`) or a strict failure (exit
+`validate` returns `validated` (exit `0`) or a strict failure (exit
 `1`) for source errors. Without `--check`, structural errors are reported but
-the audit returns `0`, except for unsafe/missing roots. The other engines
-return exit `2` / `not_implemented`. Invalid flags or a missing impact target
+the audit returns `0`, except for unsafe/missing roots. `index` returns
+`indexed` (exit `0`) and writes only generated YAML. Invalid source graphs,
+unsafe output or user-owned manifest conflicts return `1`. `index --scaffold`,
+`scaffold`, and `impact` return `2` / `not_implemented` without writing files. Invalid flags or a missing impact target
 return exit `64` / `invalid_options`; `--help` exits `0`.
 
 Common options: `--source-root/-s` (default `src`), `--tests-root/-t`
@@ -108,15 +110,54 @@ roots are diagnosed, with file/line context when available.
 A Python `__init__.py` is analyzed for statically resolvable package exports
 and re-exports, without treating every export as a direct use by every sibling
 class. Static imports and actual references are inventoried separately;
-reverse dependencies and Level 2 import-only impact are **Phase 3 work**.
+the dependency indexer now records them in generated manifests. An import
+with a proven symbol reference has edge weight 1; an import whose binding
+is unused receives weight 2. Thus directly used imports appear in Level 1,
+while import-only dependents enter at **Level 2**. Transitive paths use the
+shortest sum of edge weights and cycles are deduplicated.
+
+## Phase 3 index generation and persisted graph
+
+```bash
+matma-indexer index --source-root src --tests-root tests --format json
+matma-indexer index --target pkg.services --format yaml
+```
+
+Indexing always scans and validates **all** source roots, even with `--target`,
+so the reverse graph remains consistent. It builds file-owned dependency edges
+from statically resolved imports and class/function usages. External imports,
+dynamic imports, type-only imports and unresolved references are distinguished;
+no application code is imported or executed to inspect them. For a source such
+as `src/pkg/service.py`, index writes:
+
+```text
+tests/mirror/src/pkg/service.auto.yaml    # source symbols, typed dependencies, reverse dependents
+tests/mirror/.index.auto.yaml             # shared fingerprint, source hashes, directory metadata
+```
+
+These generated `*.auto.yaml` files are excluded from version control. They
+include an ownership header and schema version. Indexing refuses to overwrite
+user-owned YAML, preserves byte-identical generated YAML without rewriting,
+only deletes stale *MATMA-owned* YAML, and preflights paths against symlinks
+and traversal. Missing/invalid sources, ambiguous collisions and unsafe output
+produce a nonzero exit without claiming a complete index. Individual writes
+are atomic; a multi-file rebuild is not a filesystem transaction.
+
+`dependents.level_1` means established symbol usage, `level_2` adds unused
+imports and depth-two usage chains, and `level_3+` expands weighted shortest
+paths. This is persisted **selection information** only; the `impact` reader
+remains Phase 5 work and tests are never executed by `index`. Fingerprint and
+recorded directory timestamps support future freshness checking, but do not
+make indexing incremental or guarantee complete detection of all external
+filesystem changes.
 
 ## Test tiers (planned)
 
 A source module such as `src/acme/pricing.py`, even with multiple functions or
 classes, will map to exactly one unit test file and one interaction test file.
 Both tiers will account for the module's testable symbols. Generated stubs will
-explicitly fail until authored. Additional centralized mock helpers and
-regenerable, untracked YAML manifests will follow the source layout.
+explicitly fail until authored. Centralized mock helpers are planned for Phase 4. Regenerable, untracked YAML
+manifests already follow the source layout.
 
 Business and regression tests are separately authored and registered; dynamic
 runtime behavior is outside the initial static-analysis scope. For import-only
@@ -125,6 +166,7 @@ dependencies, Level 2 must select the importing module's unit tests.
 ## Verification
 
 `python -m pytest` checks CLI parsing, AST inventories, import resolution,
-layout and mirror mapping, path safety, subprocess output, read-only behavior,
-and an isolated installed consumer fixture. GitHub Actions validates Python
+layout and mirror mapping, path safety, real YAML regeneration and
+manual-file preservation, subprocess output, read-only validation, and an
+isolated installed consumer fixture. GitHub Actions validates Python
 3.11–3.13 across Linux and Windows.
