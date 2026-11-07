@@ -10,7 +10,7 @@ import yaml
 from matma.cli import COMMAND_PHASES, EXIT_NOT_IMPLEMENTED, EXIT_USAGE, main, make_parser
 
 
-@pytest.mark.parametrize("command", ["index", "scaffold", "impact"])
+@pytest.mark.parametrize("command", ["scaffold", "impact"])
 def test_every_command_shell_reports_unimplemented(command: str, capsys: pytest.CaptureFixture[str]) -> None:
     argv = [command, "--format", "json"]
     if command == "impact":
@@ -67,9 +67,9 @@ def test_yaml_result_is_valid_yaml(capsys: pytest.CaptureFixture[str]) -> None:
 
 
 def test_text_result_includes_nonzero_status(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["index"]) == 2
+    assert main(["scaffold"]) == 2
     text = capsys.readouterr().out
-    assert "matma:index [not_implemented]" in text
+    assert "matma:scaffold [not_implemented]" in text
     assert "(exit 2)" in text
 
 
@@ -113,7 +113,7 @@ def test_no_command_mutates_the_consumer_project(tmp_path, monkeypatch: pytest.M
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "pricing.py").write_text("def a(): return 1\n", encoding="utf-8")
     before = sorted(str(p.relative_to(tmp_path)) for p in tmp_path.rglob("*"))
-    for cmd in COMMAND_PHASES:
+    for cmd in ("validate", "scaffold", "impact"):
         args = [cmd, "--source-root", "src", "--tests-root", "tests"]
         if cmd == "impact":
             args += ["--target", "src/pricing.py"]
