@@ -1,6 +1,6 @@
 # MATMA Python — Phase 5: Persisted Impact Selection and Verification Registry
 
-**Status:** Implemented on Phase 5 feature branch; do not mark complete until the full GitHub Actions Python 3.11–3.13 / Linux+Windows matrix passes.
+**Status:** Implemented and CI-verified on 2026-11-07. **6/6 GitHub Actions jobs passed** for Python 3.11–3.13 on Linux and Windows ([run 42405857265](https://github.com/rzepeda/matma-py/actions/runs/42405857265)). Linux: **153 passed**. Windows: **152 passed, 1 platform-specific skip**.
 
 **Design reference:** [accepted ADR-001](ARCHITECTURE_DECISIONS.md) and [implementation checklist](TASKS.md). This phase is **read-only**: it does not run pytest, import application modules, parse source AST, regenerate stale manifests, or crawl source trees.
 
@@ -71,7 +71,7 @@ Successful output has the stable common keys `command`, `status`, `message`, `ex
 - Unit: target lookup by all supported spellings; weighted Levels 0–2; deterministic deduplication; missing test paths; explicit registration (including missing files), malformed paths, YAML ownership and schema, source hash and directory freshness, symlinks, absent manifests; monkeypatch guards against AST parsing or automatic test execution.
 - Integration: real source → `index` → persisted graph → `impact`; used import at L1, unused import at L2, flat/package layouts, custom test roots; registered business/regression files are never inferred when unregistered.
 - Installed consumer: run `impact` after `scaffold`; confirm selected existing templates without modifying or executing the generated app's tests.
-- Linux/Windows CI matrix on Python 3.11–3.13 must pass before tasks are marked verified.
+- The Linux/Windows CI matrix on Python 3.11–3.13 passed on [run 42405857265](https://github.com/rzepeda/matma-py/actions/runs/42405857265); all six Phase 5 tasks are marked complete.
 
 ## Out of scope
 
