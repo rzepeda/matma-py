@@ -1,6 +1,6 @@
 # MATMA Python — Phase 2: Read-only AST Discovery and Validation
 
-**Status:** Implementation complete; local verification **68 tests passed** (Python 3.13). GitHub Actions acceptance remains pending until the phase-2 branch's six-job Linux/Windows matrix passes.  
+**Status:** Implemented and CI-verified: **68 local pytest tests passed** (Python 3.13); **6/6 GitHub Actions jobs passed** on Python 3.11–3.13 across Linux/Windows ([run 42393367584](https://github.com/rzepeda/matma-py/actions/runs/42393367584)).  
 **Architecture:** [ADR-001](ARCHITECTURE_DECISIONS.md).  
 **Scope:** Inventory, symbol collection, deterministic mirror mapping and `validate`. This phase does **not** build the dependency graph, write YAML, scaffold tests/mocks, select impacted tests or execute pytest.
 
@@ -48,4 +48,4 @@ Diagnostic entries have `code`, `severity`, `message`, `file`, `line`, `column`.
 
 New unit fixtures cover: multiple classes/functions per module, nested and async definitions, `__init__` re-exports, `TYPE_CHECKING`, alias/relative imports, flat/custom/multi-root layouts, namespace packages, duplicate module identities, file/mirror naming, invalid source encodings/syntax, symlink safety, case collisions, path traversal, exclusions, stable repeated reads and unresolved references. Integration tests use **real subprocesses** for JSON/YAML/text, strict/non-strict exit behavior, unimplemented-command safety and zero generated files. The Phase 1 installed consumer test now proves `validate --check` succeeds and correctly resolves real consumer code.
 
-After the GitHub matrix is green, mark P2-01 through P2-06 complete and record the exact passing run link. Do not mark Phase 3 dependency resolution, Phase 4 scaffold generation or Phase 5 impact selection as implemented.
+P2-01 through P2-06 are marked complete after passing the exact Linux/Windows matrix above. Phase 3 dependency graph generation, Phase 4 scaffold generation and Phase 5 impact selection remain unimplemented.
