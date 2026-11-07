@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matma-py"
+version = "0.1.0.dev0"
+description = "Multi-Tiered Agentic Testing & Mock Architecture for Python"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["testing", "pytest", "static-analysis", "developer-tools"]
+dependencies = ["PyYAML>=6.0,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "build>=1,<2", "wheel>=0.42", "setuptools>=69"]
+
+[project.scripts]
+matma-indexer = "matma.cli:main"
+
+[project.urls]
+Repository = "https://github.com/rzepeda/matma-py"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/interaction", "tests/business"]
+addopts = "-ra"
