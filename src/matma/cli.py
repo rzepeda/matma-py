@@ -1,6 +1,6 @@
-"""Stable MATMA Python CLI: validation, indexing and safe pytest scaffolding.
+"""Stable MATMA Python CLI: static indexing, safe scaffolding and read-only impact.
 
-Phase 5 impact remains unavailable; no command executes consumer tests.
+No command executes application code or pytest.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ import yaml
 from matma.analysis import inspect_project
 from matma.indexing import index_project
 from matma.scaffolding import scaffold_project
+from matma.impact import select_impact
 
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
@@ -69,11 +70,11 @@ def make_parser() -> ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True, parser_class=ArgumentParser)
     for command, (phase, description) in COMMAND_PHASES.items():
-        available = command in ("validate", "index", "scaffold")
+        available = command in ("validate", "index", "scaffold", "impact")
         p = subparsers.add_parser(
             command,
             help=f"{description} ({'available' if available else f'planned for Phase {phase}'})",
-            description=f"{description}: {'AST validation, index generation or scaffolding' if available else f'not implemented until Phase {phase}'}",
+            description=f"{description}: {'AST validation, index generation, scaffolding or impact selection' if available else f'not implemented until Phase {phase}'}",
         )
         p.add_argument("-s", "--source-root", type=_root, default="src", help="production source root (default: src)")
         p.add_argument("-t", "--tests-root", type=_root, default="tests", help="test root (default: tests)")
@@ -134,6 +135,15 @@ def _display(payload: dict[str, Any], output_format: str) -> None:
                             if diagnostic["file"] else "project")
                 print(f"  {location}: {diagnostic['severity']} "
                       f"{diagnostic['code']}: {diagnostic['message']}")
+        if cmd == "impact" and payload["status"] == "impact_selected":
+            tests = payload["tests"]
+            print(f"  {len(tests['unit'])} unit, {len(tests['interaction'])} interaction, "
+                  f"{len(tests['missing'])} missing test files")
+            for tier in ("unit", "interaction"):
+                for filename in tests[tier]:
+                    print(f"  {tier}: {filename}")
+            for missing in tests["missing"]:
+                print(f"  missing {missing['tier']}: {missing['path']}")
 
 
 def _source_root_selected(args: Sequence[str]) -> bool:
@@ -189,6 +199,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         command = namespace.command
         payload = {**_result(command, indexed["status"], indexed["message"], indexed["exit_code"], options),
                    **{key: value for key, value in indexed.items()
+                      if key not in ("status", "message", "exit_code")}}
+        _display(payload, namespace.format)
+        return payload["exit_code"]
+
+    if namespace.command == "impact":
+        selected = select_impact(
+            target=namespace.target, level=namespace.level, tests_root=namespace.tests_root,
+            source_root=namespace.source_root, extra_source_roots=tuple(namespace.extra_source_root),
+            explicitly_selected=_source_root_selected(args),
+        )
+        payload = {**_result("impact", selected["status"], selected["message"],
+                             selected["exit_code"], options),
+                   **{key: value for key, value in selected.items()
                       if key not in ("status", "message", "exit_code")}}
         _display(payload, namespace.format)
         return payload["exit_code"]

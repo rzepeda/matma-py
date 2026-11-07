@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Phases 1–4 implemented and CI-verified. Phase 4 passed **119 tests on Linux** and **118 passed, 1 skipped on Windows** across Python 3.11–3.13 ([successful six-job CI run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)).  
+**Status:** Phases 1–5 implemented and CI-verified. Phase 5 passed **153 tests on Linux** and **152 passed, 1 skipped on Windows** across Python 3.11–3.13 ([six-job CI run 42405857265](https://github.com/rzepeda/matma-py/actions/runs/42405857265)).  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -15,7 +15,7 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 - [x] **P0-05** Parse `__init__.py` for package resolution, aliases, re-exports and actual symbol usage; don't blindly mark all initializer imports as used by sibling classes.
 - [x] **P0-06** Use Python `ast`, `PyYAML`, `pyproject.toml`, `pytest`, `unittest.mock`, Python 3.11+, Linux/Windows CI.
 - [x] **P0-07** Static-first indexing; dynamic/unresolved reference diagnostics. Business/regression suites provide separately registered workflow evidence; no full dynamic analysis.
-- [ ] **P0-08** Engineering design fixtures for collision-safe multi-root module identity, module-owned testable symbol policy (e.g. nested functions, methods, `__init__.py`), and exact impact ordering for mixed usage/import edges. These are **implementation details** that must be tested without contradicting the accepted architecture.
+- [x] **P0-08** Engineering design fixtures for collision-safe multi-root module identity, module-owned testable symbol policy (e.g. nested functions, methods, `__init__.py`), and exact impact ordering for mixed usage/import edges. These are **implementation details** that must be tested without contradicting the accepted architecture.
 
 ## Phase 1 — Installable Python package and CLI
 
@@ -67,12 +67,15 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 5 — Read-only impact selection and registered workflows
 
-- [ ] **P5-01** Implement `impact` using generated YAML/index metadata, with **no AST reparse and no automatic pytest invocation**.
-- [ ] **P5-02** Verify Level 0 target unit, Level 1 direct established-use dependents/interaction, **Level 2 import-only importing modules' unit tests**, and deeper transitive dependents; preserve inclusive selection.
-- [ ] **P5-03** Emit stable sorted paths for affected source modules, unit/interaction tests, missing test paths, and unresolved/dynamic warnings.
-- [ ] **P5-04** Reject missing, invalid or stale indexes with actionable reindex instructions; report missing *tests* without treating them as successfully covered.
-- [ ] **P5-05** Implement explicit user-owned registration for business and regression workflows; report separately but do not automatically run them.
-- [ ] **P5-06** Test no parsing at query time, selection levels, import-only use cases, cycles, stale hash/new-file signals and registry safety.
+**Status:** Complete and CI-verified. [Phase 5 report](PHASE_5_IMPLEMENTATION.md) and [successful 6-job Linux/Windows CI run](https://github.com/rzepeda/matma-py/actions/runs/42405857265).
+
+
+- [x] **P5-01** Implement `impact` using generated YAML/index metadata, with **no AST reparse and no automatic pytest invocation**.
+- [x] **P5-02** Verify Level 0 target unit, Level 1 direct established-use dependents/interaction, **Level 2 import-only importing modules' unit tests**, and deeper transitive dependents; preserve inclusive selection.
+- [x] **P5-03** Emit stable sorted paths for affected source modules, unit/interaction tests, missing test paths, and unresolved/dynamic warnings.
+- [x] **P5-04** Reject missing, invalid or stale indexes with actionable reindex instructions; report missing *tests* without treating them as successfully covered.
+- [x] **P5-05** Implement explicit user-owned registration for business and regression workflows; report separately but do not automatically run them.
+- [x] **P5-06** Test no parsing at query time, selection levels, import-only use cases, cycles, stale hash/new-file signals and registry safety.
 - **Exit criterion:** selected tests are reproducible, graph-based and truthful about freshness and analysis limitations.
 
 ## Phase 6 — Consumer validation, portability and release preparation

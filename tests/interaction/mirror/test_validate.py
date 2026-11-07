@@ -67,15 +67,13 @@ def test_text_yaml_outputs_are_real_and_deterministic(tmp_path: Path) -> None:
     assert "1 modules" in text.stdout
 
 
-def test_unimplemented_engines_still_fail(tmp_path: Path) -> None:
+def test_impact_requires_persisted_index(tmp_path: Path) -> None:
     write(tmp_path, "src/a.py", "def f(): ...\n")
-    for command in ("impact",):
-        args = [sys.executable, "-m", "matma", command, "-o", "json"]
-        if command == "impact":
-            args.extend(["--target", "src/a.py"])
-        result = subprocess.run(args, cwd=tmp_path, capture_output=True, text=True, check=False)
-        assert result.returncode == 2
-        assert json.loads(result.stdout)["status"] == "not_implemented"
+    result = subprocess.run([sys.executable, "-m", "matma", "impact", "-o", "json",
+                             "--target", "src/a.py"], cwd=tmp_path,
+                            capture_output=True, text=True, check=False)
+    assert result.returncode == 1
+    assert json.loads(result.stdout)["error_code"] == "missing_index"
 
 
 def test_multiple_source_roots_from_cli(tmp_path: Path) -> None:

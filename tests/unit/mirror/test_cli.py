@@ -7,22 +7,18 @@ import json
 import pytest
 import yaml
 
-from matma.cli import COMMAND_PHASES, EXIT_NOT_IMPLEMENTED, EXIT_USAGE, main, make_parser
+from matma.cli import COMMAND_PHASES, EXIT_USAGE, main, make_parser
 
 
-@pytest.mark.parametrize("command", ["impact"])
-def test_every_command_shell_reports_unimplemented(command: str, capsys: pytest.CaptureFixture[str]) -> None:
-    argv = [command, "--format", "json"]
-    if command == "impact":
-        argv += ["--target", "src/acme/pricing.py"]
-
-    exit_code = main(argv)
+def test_impact_without_index_fails_loudly(tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.chdir(tmp_path)
+    exit_code = main(["impact", "--format", "json", "--target", "src/acme/pricing.py"])
     output = json.loads(capsys.readouterr().out)
-    assert exit_code == EXIT_NOT_IMPLEMENTED
-    assert output["command"] == command
-    assert output["status"] == "not_implemented"
-    assert output["exit_code"] == EXIT_NOT_IMPLEMENTED
-    assert "no work performed" in output["message"]
+    assert exit_code == 1
+    assert output["command"] == "impact"
+    assert output["status"] == "impact_failed"
+    assert output["error_code"] == "missing_index"
+    assert "index" in output["message"].lower()
     assert output["options"]["format"] == "json"
 
 
@@ -58,7 +54,7 @@ def test_validate_strict_flag_and_target(capsys: pytest.CaptureFixture[str]) -> 
 
 
 def test_impact_level_and_target(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["impact", "-l", "2", "-f", "src/acme/pricing.py", "-o", "json"]) == 2
+    assert main(["impact", "-l", "2", "-f", "src/acme/pricing.py", "-o", "json"]) == 1
     opts = json.loads(capsys.readouterr().out)["options"]
     assert opts["level"] == 2
     assert opts["target"] == "src/acme/pricing.py"
@@ -78,10 +74,10 @@ def test_yaml_result_is_valid_yaml(tmp_path, monkeypatch: pytest.MonkeyPatch,
 
 
 def test_text_result_includes_nonzero_status(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["impact", "-f", "pkg.service"]) == 2
+    assert main(["impact", "-f", "pkg.service"]) == 1
     text = capsys.readouterr().out
-    assert "matma:impact [not_implemented]" in text
-    assert "(exit 2)" in text
+    assert "matma:impact [impact_failed]" in text
+    assert "(exit 1)" in text
 
 
 @pytest.mark.parametrize(
@@ -128,6 +124,6 @@ def test_no_command_mutates_the_consumer_project(tmp_path, monkeypatch: pytest.M
         args = [cmd, "--source-root", "src", "--tests-root", "tests"]
         if cmd == "impact":
             args += ["--target", "src/pricing.py"]
-        assert main(args) == (0 if cmd == "validate" else EXIT_NOT_IMPLEMENTED)
+        assert main(args) == (0 if cmd == "validate" else 1)
     after = sorted(str(p.relative_to(tmp_path)) for p in tmp_path.rglob("*"))
     assert after == before
