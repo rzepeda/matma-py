@@ -5,22 +5,25 @@ module-mirrored tests and fast, persisted reverse-dependency impact selections.
 It adapts to the **host project's existing Python layout** rather than requiring
 one class per file or rewriting production source.
 
-## Status: Phase 4 — pytest/mock scaffolding and deterministic manifests
+## Status: Phase 5 — persisted impact selection and verification registry
 
 The installable Python package implements **`validate`** (read-only structural
 analysis), **`index`** (full AST dependency indexing and manifests), and
 **`scaffold`** (create missing pytest unit, interaction and centralized mock
 starter files). `index --scaffold` runs the same scaffold pipeline after full
-reindexing. No command executes application code to analyze dependencies,
-executes tests, or rewrites production source. **`impact` remains unimplemented**
-and returns exit `2`. No complete MATMA release has been published.
+reindexing. **`impact`** reads persisted manifests, selects existing unit and
+interaction tests by reverse dependency level and separately reports explicitly
+registered business/regression paths. No command executes application code to
+analyze dependencies, executes tests, or rewrites production source.
+No complete MATMA release has been published.
 
 [Accepted architecture](AIDocumentation/ARCHITECTURE_DECISIONS.md) ·
 [Implementation checklist](AIDocumentation/TASKS.md) ·
 [Phase 1 implementation](AIDocumentation/PHASE_1_IMPLEMENTATION.md) ·
 [Phase 2 implementation](AIDocumentation/PHASE_2_IMPLEMENTATION.md) ·
 [Phase 3 implementation](AIDocumentation/PHASE_3_IMPLEMENTATION.md) ·
-[Phase 4 implementation](AIDocumentation/PHASE_4_IMPLEMENTATION.md)
+[Phase 4 implementation](AIDocumentation/PHASE_4_IMPLEMENTATION.md) ·
+[Phase 5 implementation](AIDocumentation/PHASE_5_IMPLEMENTATION.md)
 
 ## Compatibility
 
@@ -62,7 +65,10 @@ is supplied. `scaffold` returns `scaffolded` (exit `0`) on success and generates
 only **missing** authored-file starters; it also rebuilds the full index.
 `index --scaffold` returns `indexed` with a `scaffolds` report. Invalid source
 graphs, unsafe destinations or user-owned manifest conflicts return `1`.
-`impact` returns `2` / `not_implemented` without writing files or running tests.
+`impact` returns `impact_selected` (exit `0`) with existing unit/interaction
+test paths and separate missing-test diagnostics. Missing, stale, invalid or
+unsafe generated metadata fails (`impact_failed`, exit `1`) and requires an
+explicit `index` refresh. `impact` never runs tests or reparses Python AST.
 Invalid flags or a missing impact target return exit `64` / `invalid_options`;
 `--help` exits `0`.
 
@@ -153,11 +159,10 @@ are atomic; a multi-file rebuild is not a filesystem transaction.
 
 `dependents.level_1` means established symbol usage, `level_2` adds unused
 imports and depth-two usage chains, and `level_3+` expands weighted shortest
-paths. This is persisted **selection information** only; the `impact` reader
-remains Phase 5 work and tests are never executed by `index`. Fingerprint and
-recorded directory timestamps support future freshness checking, but do not
-make indexing incremental or guarantee complete detection of all external
-filesystem changes.
+paths. This is persisted **selection information** only; the `impact` reader selects already existing test files from those manifests.
+Fingerprint and recorded directory timestamps support freshness checking,
+but do not make indexing incremental or guarantee detection of every external
+filesystem change (e.g. metadata-preserving modifications).
 
 ## Phase 4: module-mirrored test and mock starters
 
@@ -212,9 +217,44 @@ MATMA never runs pytest for you; developers and agents run selected tests
 explicitly. Only `validate` is read-only; `index` and `scaffold` write the
 generated artifacts they document.
 
-Business and regression tests are separately authored and registered; dynamic
-runtime behavior is outside the initial static-analysis scope. For import-only
-dependencies, Level 2 must select the importing module's unit tests.
+## Phase 5: read-only impact selection
+
+```bash
+matma-indexer index -o json
+matma-indexer impact -f pkg.service --level 2 --format json
+```
+
+Level `0` selects the target's unit tests; Level `1` adds target interaction
+and direct proven usage dependents; Level `2` includes importing modules whose
+binding was imported but never used, and two-edge usage chains. Greater levels
+select more transitive dependents using the precomputed shortest weighted
+reverse graph. **Only existing files** appear in `tests.unit` and
+`tests.interaction`; expected absent tests appear in `tests.missing` with their
+tier, source and level. Missing tests do not cause a false claim of coverage.
+
+`impact` reads the generated companion `.index.auto.yaml` and **one target
+manifest**, never reindexes automatically, never parses source AST and never
+runs pytest. SHA-256 freshness checks read only already indexed source-file
+bytes, and recorded source directory timestamps signal added or removed files.
+If stale, run `matma-indexer index` again.
+
+Business and regression tests are optional, explicitly registered in the
+user-owned `tests/matma-verification.yaml`:
+
+```yaml
+schema_version: 1
+registrations:
+  src/pkg/service.py:
+    business:
+      - tests/business/test_user_workflow.py
+    regression:
+      - tests/regression/test_issue_123.py
+```
+
+They are **reported separately**, never automatically selected or executed as
+unit/interaction tests. Dynamic Python behavior remains outside the static
+index's guarantees; use genuine business and regression assertions for additional
+evidence. See [Phase 5 implementation](AIDocumentation/PHASE_5_IMPLEMENTATION.md).
 
 ## Verification
 
@@ -222,5 +262,5 @@ dependencies, Level 2 must select the importing module's unit tests.
 layout and mirror mapping, path safety, real YAML regeneration and
 manual-file preservation, subprocess output, read-only validation, non-clobber
 pytest/mock templates, scoped dependency mocks, and a consumer fixture that
-confirms generated pytest tests fail until authored. The six-job GitHub Actions
-matrix passed on Python 3.11–3.13 across Linux and Windows ([run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)).
+confirms generated pytest tests fail until authored. GitHub Actions validates Python
+3.11–3.13 across Linux and Windows.

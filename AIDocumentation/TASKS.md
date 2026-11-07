@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Phases 1–4 implemented and CI-verified. Phase 4 passed **119 tests on Linux** and **118 passed, 1 skipped on Windows** across Python 3.11–3.13 ([successful six-job CI run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)).  
+**Status:** Phases 1–4 complete and CI-verified ([Phase 4 CI run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)). Phase 5 implementation is committed for CI verification; completion is pending.  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -66,6 +66,9 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 - **Exit criterion:** both tiers account for all supported callable symbols; safe no-clobber generation and honest placeholder failure verified.
 
 ## Phase 5 — Read-only impact selection and registered workflows
+
+**Status:** Implemented in feature branch; tasks remain unchecked until the six-job Python 3.11–3.13 Linux/Windows CI matrix verifies the installed consumer workflow. [Phase 5 report](PHASE_5_IMPLEMENTATION.md).
+
 
 - [ ] **P5-01** Implement `impact` using generated YAML/index metadata, with **no AST reparse and no automatic pytest invocation**.
 - [ ] **P5-02** Verify Level 0 target unit, Level 1 direct established-use dependents/interaction, **Level 2 import-only importing modules' unit tests**, and deeper transitive dependents; preserve inclusive selection.

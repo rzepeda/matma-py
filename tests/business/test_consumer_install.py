@@ -79,3 +79,14 @@ def test_installed_package_in_real_consumer(tmp_path: Path) -> None:
     assert failing.returncode == 1, failing.stdout + failing.stderr
     assert "MATMA: implement" in failing.stdout
     assert "failed" in failing.stdout
+
+    # Phase 5: the installed consumer reads persisted impact metadata without
+    # running generated pytest placeholders or changing source files.
+    selected = _run("-m", "matma", "impact", "--target", "example_app.pricing",
+                    "--level", "1", "-o", "json", cwd=consumer_work, env=env)
+    assert selected.returncode == 0, selected.stdout + selected.stderr
+    impact = json.loads(selected.stdout)
+    assert impact["status"] == "impact_selected"
+    assert impact["tests"]["unit"] == ["tests/unit/mirror/src/example_app/test_pricing.py"]
+    assert impact["tests"]["interaction"] == ["tests/interaction/mirror/src/example_app/test_pricing_interaction.py"]
+    assert impact["tests"]["missing"] == []

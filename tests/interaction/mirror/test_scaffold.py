@@ -160,8 +160,13 @@ def test_flat_and_custom_tests_root_support(tmp_path: Path) -> None:
     assert (tmp_path / "qa/mirror/mylib/worker.auto.yaml").is_file()
 
 
-def test_impact_still_intentionally_not_implemented(tmp_path: Path) -> None:
+def test_impact_reads_generated_tests_without_running_them(tmp_path: Path) -> None:
     write(tmp_path, "src/m.py", "def m(): ...\n")
-    result = run(tmp_path, "impact", "--target", "m", "-o", "json")
-    assert result.returncode == 2
-    assert json.loads(result.stdout)["status"] == "not_implemented"
+    assert run(tmp_path, "scaffold", "-o", "json").returncode == 0
+    result = run(tmp_path, "impact", "--target", "m", "--level", "1", "-o", "json")
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "impact_selected"
+    assert payload["tests"]["unit"] == ["tests/unit/mirror/src/test_m.py"]
+    assert payload["tests"]["interaction"] == ["tests/interaction/mirror/src/test_m_interaction.py"]
+    assert payload["tests"]["missing"] == []

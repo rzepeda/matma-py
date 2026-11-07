@@ -23,16 +23,13 @@ def invoke(*arguments: str, cwd: Path | None = None) -> subprocess.CompletedProc
     )
 
 
-@pytest.mark.parametrize("command", ["impact"])
-def test_python_module_entrypoint_does_not_claim_completed_engine(command: str) -> None:
-    args = [command, "-o", "json"]
-    if command == "impact":
-        args += ["--target", "src/acme/pricing.py"]
-    result = invoke(*args)
-    assert result.returncode == 2, result.stderr
+def test_python_module_entrypoint_requires_index(tmp_path: Path) -> None:
+    result = invoke("impact", "-o", "json", "--target", "src/acme/pricing.py", cwd=tmp_path)
+    assert result.returncode == 1, result.stderr
     output = json.loads(result.stdout)
-    assert output["command"] == command
-    assert output["status"] == "not_implemented"
+    assert output["command"] == "impact"
+    assert output["status"] == "impact_failed"
+    assert output["error_code"] == "missing_index"
 
 
 def test_python_module_entrypoint_invalid_options() -> None:

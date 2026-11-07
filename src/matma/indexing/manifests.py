@@ -222,8 +222,26 @@ def write_manifests(root: Path, tests_root: str, examined: dict[str, Any], graph
             "schema_version": SCHEMA_VERSION,
             "index_fingerprint": fingerprint,
             "source_roots": sorted(source_roots),
+            "tests_root": tests_root,
             "sources": source_hashes,
             "directories": _directory_inventory(project_root, source_hashes, source_roots),
+            # Phase 5 resolves source paths, import names and qualified symbols
+            # without opening every YAML manifest or reparsing Python modules.
+            "module_to_source": dict(sorted(examined.get("module_to_source", {
+                item["module_name"]: item["source_file"] for item in examined["files"]
+            }).items())),
+            "symbol_to_source": dict(sorted(examined.get("symbol_to_source", {
+                f"{item['module_name']}.{symbol['qualname']}": item["source_file"]
+                for item in examined["files"] for symbol in item["symbols"]
+            }).items())),
+            "source_to_manifest": {key: by_source[key]["mirrors"]["manifest"]
+                                   for key in sorted(by_source)},
+            "warnings_by_source": {
+                key: sorted((d for d in examined["diagnostics"]
+                             if d.get("file") == key and d.get("severity") == "warning"),
+                            key=lambda d: (d.get("line") or 0, d.get("column") or 0, d["code"]))
+                for key in sorted(by_source)
+            },
         }
         bucket = written if _atomic_write(metadata_path, _yaml(metadata)) else unchanged
         bucket.append(metadata_path.relative_to(project_root).as_posix())
