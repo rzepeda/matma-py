@@ -77,12 +77,15 @@ def test_index_rejects_unknown_target_without_writes(tmp_path: Path) -> None:
     assert not (tmp_path / "tests").exists()
 
 
-def test_index_scaffold_flag_remains_unimplemented_without_writes(tmp_path: Path) -> None:
+def test_index_scaffold_flag_creates_failing_starters(tmp_path: Path) -> None:
     write(tmp_path, "src/valid.py", "def valid(): ...\n")
     process = run(tmp_path, "--scaffold", "-o", "json")
-    assert process.returncode == 2
-    assert json.loads(process.stdout)["status"] == "not_implemented"
-    assert not (tmp_path / "tests").exists()
+    assert process.returncode == 0, process.stdout + process.stderr
+    data = json.loads(process.stdout)
+    assert data["status"] == "indexed"
+    assert len(data["scaffolds"]["created"]) == 3
+    assert (tmp_path / "tests/unit/mirror/src/test_valid.py").is_file()
+    assert (tmp_path / "tests/mirror/src/valid.auto.yaml").is_file()
 
 
 def test_index_supports_nondefault_test_root_and_multiple_source_roots(tmp_path: Path) -> None:

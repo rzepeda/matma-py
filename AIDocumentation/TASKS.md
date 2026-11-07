@@ -54,6 +54,9 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 4 — pytest and unittest.mock scaffolding
 
+**Status:** Implemented on feature branch; checkboxes remain pending until Linux/Windows CI and installed consumer tests are verified. [Phase 4 report](PHASE_4_IMPLEMENTATION.md).
+
+
 - [ ] **P4-01** Create only missing mirrored unit/interaction test files, one pair **per eligible module**, preserving existing authored files.
 - [ ] **P4-02** Generate distinct intentionally failing pytest placeholders for module functions, async functions, classes and their applicable methods in **both** tiers; preserve paths/names for actionable test selection.
 - [ ] **P4-03** Create centralized mock helper/factory files using `unittest.mock`, `AsyncMock` and autospec where safe; support patch-at-lookup-site conventions and warn on impossible/ambiguous cases.

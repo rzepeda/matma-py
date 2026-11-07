@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -60,3 +61,21 @@ def test_installed_package_in_real_consumer(tmp_path: Path) -> None:
     consumer_tests = _run("-m", "pytest", "-q", "tests", cwd=CONSUMER, env=env)
     assert consumer_tests.returncode == 0, consumer_tests.stdout + consumer_tests.stderr
     assert "2 passed" in consumer_tests.stdout
+
+    # Use a copy of the installed consumer's source to verify the Phase 4
+    # scaffold workflow without modifying tracked fixture files.
+    consumer_work = tmp_path / "scaffold-consumer"
+    shutil.copytree(CONSUMER / "src", consumer_work / "src")
+    scaffold = _run("-m", "matma", "scaffold", "--format", "json", cwd=consumer_work, env=env)
+    assert scaffold.returncode == 0, scaffold.stdout + scaffold.stderr
+    output = json.loads(scaffold.stdout)
+    assert output["status"] == "scaffolded"
+    assert len(output["scaffolds"]["created"]) == 3
+    assert (consumer_work / "tests/mirror/src/example_app/pricing.auto.yaml").is_file()
+
+    generated = consumer_work / "tests/unit/mirror/src/example_app/test_pricing.py"
+    assert generated.is_file()
+    failing = _run("-m", "pytest", "-q", str(generated), cwd=consumer_work, env=env)
+    assert failing.returncode == 1, failing.stdout + failing.stderr
+    assert "MATMA: implement" in failing.stdout
+    assert "failed" in failing.stdout

@@ -69,7 +69,7 @@ def test_text_yaml_outputs_are_real_and_deterministic(tmp_path: Path) -> None:
 
 def test_unimplemented_engines_still_fail(tmp_path: Path) -> None:
     write(tmp_path, "src/a.py", "def f(): ...\n")
-    for command in ("scaffold", "impact"):
+    for command in ("impact",):
         args = [sys.executable, "-m", "matma", command, "-o", "json"]
         if command == "impact":
             args.extend(["--target", "src/a.py"])
