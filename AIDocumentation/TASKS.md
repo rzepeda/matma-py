@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Phases 1–2 implemented and CI-verified; Phase 2 passed 68 local tests and all six Linux/Windows jobs for Python 3.11–3.13 ([run 42393367584](https://github.com/rzepeda/matma-py/actions/runs/42393367584)).  
+**Status:** Phases 1–3 implemented and CI-verified. Phase 3 passed 96 pytest tests on Linux and 95 tests with one platform-specific skip on Windows across the Python 3.11–3.13 matrix ([run 42402164370](https://github.com/rzepeda/matma-py/actions/runs/42402164370)).  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -41,12 +41,15 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 3 — Typed dependency graph and persisted index
 
-- [ ] **P3-01** Define typed static dependency edges: actual symbol use, runtime import/import-only, inheritance, decorator, annotation/type-only and unresolved/dynamic diagnostics.
-- [ ] **P3-02** Resolve references through aliases/re-exports where supported; distinguish package initialization side effects from symbols actually used by sibling modules.
-- [ ] **P3-03** Compute reverse dependency impact with stable deduplication, cycles, shortest-path semantics and explicit Level 2 import-only acceptance fixtures.
-- [ ] **P3-04** Serialize source module manifests `tests/mirror/**/*.auto.yaml` containing symbols, typed dependency edges, mirrors, reverse dependents, warnings, schema version and index fingerprint; include generated companion freshness metadata.
-- [ ] **P3-05** Implement full deterministic `index`, atomic and ownership-safe writes, byte-identical regeneration, MATMA-owned stale cleanup, and non-destructive source-validation failure.
-- [ ] **P3-06** Test chain/diamond/cycle, used vs unused import, imports through `__init__.py`, external imports, `TYPE_CHECKING`, unresolved dynamic references, re-exports and multi-root identity.
+**Status:** 6/6 tasks implemented and CI-verified ([Phase 3 report](PHASE_3_IMPLEMENTATION.md); [successful six-job CI run](https://github.com/rzepeda/matma-py/actions/runs/42402164370)). `index` persists deterministic reverse-dependency YAML; `scaffold` and `impact` remain explicit not-implemented shells.
+
+
+- [x] **P3-01** Define typed static dependency edges: actual symbol use, runtime import/import-only, inheritance, decorator, annotation/type-only and unresolved/dynamic diagnostics.
+- [x] **P3-02** Resolve references through aliases/re-exports where supported; distinguish package initialization side effects from symbols actually used by sibling modules.
+- [x] **P3-03** Compute reverse dependency impact with stable deduplication, cycles, shortest-path semantics and explicit Level 2 import-only acceptance fixtures.
+- [x] **P3-04** Serialize source module manifests `tests/mirror/**/*.auto.yaml` containing symbols, typed dependency edges, mirrors, reverse dependents, warnings, schema version and index fingerprint; include generated companion freshness metadata.
+- [x] **P3-05** Implement full deterministic `index`, atomic and ownership-safe writes, byte-identical regeneration, MATMA-owned stale cleanup, and non-destructive source-validation failure.
+- [x] **P3-06** Test chain/diamond/cycle, used vs unused import, imports through `__init__.py`, external imports, `TYPE_CHECKING`, unresolved dynamic references, re-exports and multi-root identity.
 - **Exit criterion:** full deterministic graph and reliable import-only Level 2 impact information, with no false internal edges.
 
 ## Phase 4 — pytest and unittest.mock scaffolding

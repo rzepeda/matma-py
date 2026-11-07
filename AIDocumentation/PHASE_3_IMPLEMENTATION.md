@@ -1,6 +1,6 @@
 # MATMA Python — Phase 3: Dependency Indexing and Persisted Reverse Graph
 
-**Status:** Implemented locally. Phase 3 GitHub CI acceptance to be recorded only after the branch's Linux/Windows matrix is green.
+**Status:** Implemented and CI-verified on 2026-11-07. **6/6 GitHub Actions jobs passed** for Python 3.11–3.13 on Linux and Windows ([run 42402164370](https://github.com/rzepeda/matma-py/actions/runs/42402164370)). The suite passed 96 tests on Linux and 95 tests with one platform-specific skip on Windows.
 
 **Design reference:** [accepted Python ADR-001](ARCHITECTURE_DECISIONS.md). The source **module**, not the Python class, is the atomic graph/test mirror node. Phase 2 `validate` and its source/module resolver remain read-only.
 
@@ -83,7 +83,7 @@ matma-indexer index --scaffold --format=json    # exit 2, no writes
 - Graph fixtures: a used import (L1), import-only (L2), a chained weighted dependency, chain/diamond, cycle, scoped imports, external imports, type-only/decorator evidence, deterministic order, `__init__.py` re-export accessed versus unused.
 - Real temp-filesystem writer fixtures: byte-stable repeat indexing, content fingerprint changes, ownership conflict preflight, stale owned cleanup without deleting manual files, symlink rejection, index failure with no writes, and `--target` full-graph behavior.
 - Black-box CLI fixtures: actual Phase 2 analyzer + generated YAML, imported-only L2, package re-exports, no scaffolding, invalid sources/targets, custom test/source roots, dynamic/static boundaries and output formats.
-- The full package and consumer suite is exercised via the existing GitHub Actions matrix on Python 3.11, 3.12, 3.13 across Linux and Windows. CI evidence will be added only after it passes.
+- The full package and consumer suite passed the six-job GitHub Actions matrix on Python 3.11, 3.12, 3.13 across Linux and Windows ([run 42402164370](https://github.com/rzepeda/matma-py/actions/runs/42402164370)). Windows CI exposed a CRLF-generated YAML ownership-header edge case, fixed by accepting LF/CRLF with a distinct regression fixture.
 
 ## Out of scope
 
