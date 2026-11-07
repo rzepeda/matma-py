@@ -23,7 +23,7 @@ def invoke(*arguments: str, cwd: Path | None = None) -> subprocess.CompletedProc
     )
 
 
-@pytest.mark.parametrize("command", ["scaffold", "impact"])
+@pytest.mark.parametrize("command", ["impact"])
 def test_python_module_entrypoint_does_not_claim_completed_engine(command: str) -> None:
     args = [command, "-o", "json"]
     if command == "impact":

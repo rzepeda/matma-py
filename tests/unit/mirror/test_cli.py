@@ -10,7 +10,7 @@ import yaml
 from matma.cli import COMMAND_PHASES, EXIT_NOT_IMPLEMENTED, EXIT_USAGE, main, make_parser
 
 
-@pytest.mark.parametrize("command", ["scaffold", "impact"])
+@pytest.mark.parametrize("command", ["impact"])
 def test_every_command_shell_reports_unimplemented(command: str, capsys: pytest.CaptureFixture[str]) -> None:
     argv = [command, "--format", "json"]
     if command == "impact":
@@ -37,11 +37,17 @@ def test_all_commands_have_source_and_tests_roots(command: str) -> None:
     assert parsed.format == "text"
 
 
-def test_index_scaffold_flag_is_retained(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["index", "-S", "-s", r"src\acme", "-t", "tests", "-o", "json"]) == 2
+def test_index_scaffold_flag_is_retained(tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.chdir(tmp_path)
+    source = tmp_path / "src" / "acme"
+    source.mkdir(parents=True)
+    (source / "service.py").write_text("def work(): return True\n")
+    assert main(["index", "-S", "-s", r"src\acme", "-t", "tests", "-o", "json"]) == 0
     data = json.loads(capsys.readouterr().out)
     assert data["options"]["scaffold"] is True
     assert data["options"]["source_root"] == "src/acme"
+    assert data["status"] == "indexed"
+    assert len(data["scaffolds"]["created"]) == 3
 
 
 def test_validate_strict_flag_and_target(capsys: pytest.CaptureFixture[str]) -> None:
@@ -58,18 +64,23 @@ def test_impact_level_and_target(capsys: pytest.CaptureFixture[str]) -> None:
     assert opts["target"] == "src/acme/pricing.py"
 
 
-def test_yaml_result_is_valid_yaml(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["scaffold", "-f", "acme.pricing", "-o", "yaml"]) == 2
+def test_yaml_result_is_valid_yaml(tmp_path, monkeypatch: pytest.MonkeyPatch,
+                                  capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.chdir(tmp_path)
+    source = tmp_path / "src" / "acme"
+    source.mkdir(parents=True)
+    (source / "pricing.py").write_text("def calculate(): return 1\n")
+    assert main(["scaffold", "-f", "acme.pricing", "-o", "yaml"]) == 0
     output = yaml.safe_load(capsys.readouterr().out)
     assert output["command"] == "scaffold"
-    assert output["status"] == "not_implemented"
+    assert output["status"] == "scaffolded"
     assert output["options"]["target"] == "acme.pricing"
 
 
 def test_text_result_includes_nonzero_status(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["scaffold"]) == 2
+    assert main(["impact", "-f", "pkg.service"]) == 2
     text = capsys.readouterr().out
-    assert "matma:scaffold [not_implemented]" in text
+    assert "matma:impact [not_implemented]" in text
     assert "(exit 2)" in text
 
 
@@ -113,7 +124,7 @@ def test_no_command_mutates_the_consumer_project(tmp_path, monkeypatch: pytest.M
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "pricing.py").write_text("def a(): return 1\n", encoding="utf-8")
     before = sorted(str(p.relative_to(tmp_path)) for p in tmp_path.rglob("*"))
-    for cmd in ("validate", "scaffold", "impact"):
+    for cmd in ("validate", "impact"):
         args = [cmd, "--source-root", "src", "--tests-root", "tests"]
         if cmd == "impact":
             args += ["--target", "src/pricing.py"]

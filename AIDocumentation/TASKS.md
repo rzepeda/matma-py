@@ -1,6 +1,6 @@
 # MATMA Python — Implementation Checklist
 
-**Status:** Phases 1–3 implemented and CI-verified. Phase 3 passed 96 pytest tests on Linux and 95 tests with one platform-specific skip on Windows across the Python 3.11–3.13 matrix ([run 42402164370](https://github.com/rzepeda/matma-py/actions/runs/42402164370)).  
+**Status:** Phases 1–4 implemented and CI-verified. Phase 4 passed **119 tests on Linux** and **118 passed, 1 skipped on Windows** across Python 3.11–3.13 ([successful six-job CI run 42403853787](https://github.com/rzepeda/matma-py/actions/runs/42403853787)).  
 **Authoritative decisions:** [ARCHITECTURE_DECISIONS.md](ARCHITECTURE_DECISIONS.md)  
 **Reference implementation:** `rzepeda/matma-php` (behavioral contracts, not a source-code port).
 
@@ -54,12 +54,15 @@ This checklist uses **unchecked** items until code and corresponding tests are v
 
 ## Phase 4 — pytest and unittest.mock scaffolding
 
-- [ ] **P4-01** Create only missing mirrored unit/interaction test files, one pair **per eligible module**, preserving existing authored files.
-- [ ] **P4-02** Generate distinct intentionally failing pytest placeholders for module functions, async functions, classes and their applicable methods in **both** tiers; preserve paths/names for actionable test selection.
-- [ ] **P4-03** Create centralized mock helper/factory files using `unittest.mock`, `AsyncMock` and autospec where safe; support patch-at-lookup-site conventions and warn on impossible/ambiguous cases.
-- [ ] **P4-04** Ensure `scaffold` and `index --scaffold` follow the same engine and reindex full reverse dependencies while generating tests only for selected targets.
-- [ ] **P4-05** Preflight all destinations, enforce exclusive creation and symlink safety, and prove repeated scaffold calls never overwrite edited tests.
-- [ ] **P4-06** Run generated scaffold via pytest in a consumer fixture and **verify intentional failures**, not passing fake tests.
+**Status:** Complete and CI-verified on Linux/Windows, Python 3.11–3.13. [Phase 4 implementation report](PHASE_4_IMPLEMENTATION.md) and [six-job passing run](https://github.com/rzepeda/matma-py/actions/runs/42403853787).
+
+
+- [x] **P4-01** Create only missing mirrored unit/interaction test files, one pair **per eligible module**, preserving existing authored files.
+- [x] **P4-02** Generate distinct intentionally failing pytest placeholders for module functions, async functions, classes and their applicable methods in **both** tiers; preserve paths/names for actionable test selection.
+- [x] **P4-03** Create centralized mock helper/factory files using `unittest.mock`, `AsyncMock` and autospec where safe; support patch-at-lookup-site conventions and warn on impossible/ambiguous cases.
+- [x] **P4-04** Ensure `scaffold` and `index --scaffold` follow the same engine and reindex full reverse dependencies while generating tests only for selected targets.
+- [x] **P4-05** Preflight all destinations, enforce exclusive creation and symlink safety, and prove repeated scaffold calls never overwrite edited tests.
+- [x] **P4-06** Run generated scaffold via pytest in a consumer fixture and **verify intentional failures**, not passing fake tests.
 - **Exit criterion:** both tiers account for all supported callable symbols; safe no-clobber generation and honest placeholder failure verified.
 
 ## Phase 5 — Read-only impact selection and registered workflows

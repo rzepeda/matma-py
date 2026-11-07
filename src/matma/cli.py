@@ -1,7 +1,6 @@
-"""Stable MATMA Python CLI: read-only validation and full source AST indexing.
+"""Stable MATMA Python CLI: validation, indexing and safe pytest scaffolding.
 
-Scaffolding and impact-query engines remain future phases. Indexing writes only
-MATMA-owned YAML manifests and does not execute user tests or application code.
+Phase 5 impact remains unavailable; no command executes consumer tests.
 """
 
 from __future__ import annotations
@@ -17,6 +16,7 @@ import yaml
 
 from matma.analysis import inspect_project
 from matma.indexing import index_project
+from matma.scaffolding import scaffold_project
 
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
@@ -69,11 +69,11 @@ def make_parser() -> ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True, parser_class=ArgumentParser)
     for command, (phase, description) in COMMAND_PHASES.items():
-        available = command in ("validate", "index")
+        available = command in ("validate", "index", "scaffold")
         p = subparsers.add_parser(
             command,
             help=f"{description} ({'available' if available else f'planned for Phase {phase}'})",
-            description=f"{description}: {'AST validation or index generation' if available else f'not implemented until Phase {phase}'}",
+            description=f"{description}: {'AST validation, index generation or scaffolding' if available else f'not implemented until Phase {phase}'}",
         )
         p.add_argument("-s", "--source-root", type=_root, default="src", help="production source root (default: src)")
         p.add_argument("-t", "--tests-root", type=_root, default="tests", help="test root (default: tests)")
@@ -82,7 +82,7 @@ def make_parser() -> ArgumentParser:
         p.add_argument("-o", "--format", choices=("text", "json", "yaml"), default="text", help="result format")
         p.add_argument("-f", "--target", type=_non_empty, help="source module path or qualified target")
         if command == "index":
-            p.add_argument("-S", "--scaffold", action="store_true", help="also generate missing tests (Phase 4)")
+            p.add_argument("-S", "--scaffold", action="store_true", help="also generate missing pytest and mock files")
         if command == "validate":
             p.add_argument("-c", "--check", action="store_true", help="strict structural audit (Phase 2)")
         if command == "impact":
@@ -118,14 +118,17 @@ def _display(payload: dict[str, Any], output_format: str) -> None:
     else:
         cmd = payload["command"] or "cli"
         print(f"matma:{cmd} [{payload['status']}] {payload['message']} (exit {payload['exit_code']})")
-        if cmd in ("validate", "index") and "summary" in payload:
+        if cmd in ("validate", "index", "scaffold") and "summary" in payload:
             summary = payload["summary"]
             print(f"  {summary['parsed_files']} modules, {summary['symbols']} symbols, "
                   f"{summary['diagnostic_errors']} errors, {summary['diagnostic_warnings']} warnings")
-            if cmd == "index" and "graph_summary" in payload:
+            if cmd in ("index", "scaffold") and "graph_summary" in payload:
                 graph = payload["graph_summary"]
                 print(f"  {graph['internal_edges']} internal graph edges, "
                       f"{graph['import_only_edges']} import-only edges")
+            if "scaffolds" in payload and payload["exit_code"] == 0:
+                print(f"  {len(payload['scaffolds']['created'])} scaffold files created, "
+                      f"{len(payload['scaffolds']['existing'])} existing files retained")
             for diagnostic in payload["diagnostics"]:
                 location = (f"{diagnostic['file']}:{diagnostic['line'] or 1}"
                             if diagnostic["file"] else "project")
@@ -174,19 +177,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         _display(payload, namespace.format)
         return payload["exit_code"]
 
-    if namespace.command == "index":
-        if namespace.scaffold:
-            payload = _result("index", "not_implemented",
-                              "Test/mocks scaffolding is planned for Phase 4; no work performed",
-                              EXIT_NOT_IMPLEMENTED, options)
-            _display(payload, namespace.format)
-            return EXIT_NOT_IMPLEMENTED
-        indexed = index_project(
+    if namespace.command in ("index", "scaffold"):
+        common = dict(
             source_root=namespace.source_root, tests_root=namespace.tests_root,
             target=namespace.target, extra_source_roots=tuple(namespace.extra_source_root),
             explicitly_selected=_source_root_selected(args),
         )
-        payload = {**_result("index", indexed["status"], indexed["message"], indexed["exit_code"], options),
+        do_scaffold = namespace.command == "scaffold" or bool(getattr(namespace, "scaffold", False))
+        indexed = (scaffold_project(**common, from_index=(namespace.command == "index"))
+                   if do_scaffold else index_project(**common))
+        command = namespace.command
+        payload = {**_result(command, indexed["status"], indexed["message"], indexed["exit_code"], options),
                    **{key: value for key, value in indexed.items()
                       if key not in ("status", "message", "exit_code")}}
         _display(payload, namespace.format)
