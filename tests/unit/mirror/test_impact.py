@@ -157,13 +157,23 @@ def test_target_by_path_module_or_symbol(tmp_path: Path, target: str):
 
 def test_impact_does_not_import_user_source_or_execute_tests(tmp_path: Path, monkeypatch):
     fixture_project(tmp_path)
-    # A change from Python AST to runtime import/test execution would trip this.
+    # Scope the guard carefully: pytest itself may call ast.parse to format
+    # assertion tracebacks (notably on Windows/Python 3.13).
     import ast
     import subprocess
-    monkeypatch.setattr(ast, "parse", lambda *a, **k: (_ for _ in ()).throw(AssertionError("AST reparsed")))
-    monkeypatch.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("Ran tests")))
-    selected = impact(tmp_path, level=2)
+    original_parse = ast.parse
+    calls: list[str] = []
+
+    def track_ast(*args, **kwargs):
+        calls.append(str(args[0])[:80] if args else "<no input>")
+        return original_parse(*args, **kwargs)
+
+    with monkeypatch.context() as guard:
+        guard.setattr(ast, "parse", track_ast)
+        guard.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("Executed tests")))
+        selected = impact(tmp_path, level=2)
     assert selected["status"] == "impact_selected"
+    assert calls == [], f"Impact unexpectedly parsed AST: {calls}"
 
 
 def test_only_companion_and_target_manifest_read(tmp_path: Path, monkeypatch):

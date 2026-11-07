@@ -87,3 +87,11 @@ The directory inventory now watches only the explicitly configured source roots
 and their nested indexed folders (including `.` only for a flat source-root `.`).
 An actual change to a known source file or tracked source folder still requires reindexing.
 Regression fixtures cover both the inventory policy and the real CLI workflow.
+
+### Windows test-harness correction
+
+The initial Windows CI run revealed that globally monkeypatching `ast.parse`
+in the no-reparse test could also break pytest/Python's traceback formatting.
+The guard is now contained within a context manager, records unexpected AST
+calls, and always restores Python's standard parser before pytest assertions.
+The production impact reader still uses no AST parsing or subprocess invocation.
