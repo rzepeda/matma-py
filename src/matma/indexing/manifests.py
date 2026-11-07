@@ -23,6 +23,11 @@ class ManifestError(Exception):
     """An unsafe or unsuccessful index write, reported as a nonzero CLI error."""
 
 
+def _has_ownership_header(first_line: bytes) -> bool:
+    """Accept LF and CRLF headers, but never an unrelated user file."""
+    return first_line.rstrip(b"\r\n") == HEADER.encode("utf-8").rstrip(b"\r\n")
+
+
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -65,7 +70,7 @@ def _preflight_path(root: Path, tests_mirror: Path, path: Path) -> None:
                 first = stream.readline()
         except OSError as exc:
             raise ManifestError(f"Cannot read existing manifest {path}: {exc}") from exc
-        if first != HEADER.encode("utf-8"):
+        if not _has_ownership_header(first):
             raise ManifestError(f"Refusing to overwrite user-owned YAML: {path}")
 
 
@@ -202,7 +207,7 @@ def write_manifests(root: Path, tests_root: str, examined: dict[str, Any], graph
                     continue
                 if path.is_file():
                     with path.open("rb") as handle:
-                        owned = handle.readline() == HEADER.encode("utf-8")
+                        owned = _has_ownership_header(handle.readline())
                     if owned:
                         stale.append(path)
     written: list[str] = []

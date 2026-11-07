@@ -73,7 +73,8 @@ def test_stale_owned_yaml_is_removed_but_manual_yaml_preserved(tmp_path: Path):
     write_manifests(tmp_path, "tests", inspected, graph)
     stale = tmp_path / "tests/mirror/src/stale.auto.yaml"
     manual = tmp_path / "tests/mirror/src/user.auto.yaml"
-    stale.write_text(HEADER + "schema_version: 1\n")
+    # Simulate CRLF writes on Windows: safely recognize the MATMA header.
+    stale.write_bytes((HEADER + "schema_version: 1\n").replace("\n", "\r\n").encode())
     manual.write_text("my_own: true\n")
     outcome = write_manifests(tmp_path, "tests", inspected, graph)
     assert not stale.exists()
@@ -139,3 +140,12 @@ def test_metadata_handles_flat_source_root_without_mtime_churn(tmp_path: Path):
     assert second["manifests"]["written"] == []
     metadata = yaml.safe_load((tmp_path / "tests/mirror/.index.auto.yaml").read_text())
     assert any(x["path"] == "." for x in metadata["directories"])
+
+def test_existing_crlf_owned_manifest_can_be_regenerated(tmp_path: Path):
+    modules, inspected = setup_project(tmp_path)
+    write_manifests(tmp_path, "tests", inspected, build_graph(modules))
+    owned = tmp_path / "tests/mirror/src/base.auto.yaml"
+    owned.write_bytes(owned.read_bytes().replace(b"\n", b"\r\n"))
+    second = write_manifests(tmp_path, "tests", inspected, build_graph(modules))
+    assert "tests/mirror/src/base.auto.yaml" in second["manifests"]["written"]
+    assert owned.read_bytes().startswith(HEADER.encode())
