@@ -50,8 +50,11 @@ def test_installed_package_in_real_consumer(tmp_path: Path) -> None:
     assert metadata.returncode == 0, metadata.stdout + metadata.stderr
 
     result = _run("-m", "matma", "validate", "--check", "-o", "json", cwd=CONSUMER, env=env)
-    assert result.returncode == 2, result.stdout + result.stderr
-    assert json.loads(result.stdout)["status"] == "not_implemented"
+    assert result.returncode == 0, result.stdout + result.stderr
+    validate = json.loads(result.stdout)
+    assert validate["status"] == "validated"
+    assert validate["summary"]["parsed_files"] == 2
+    assert validate["module_to_source"]["example_app.pricing"] == "src/example_app/pricing.py"
 
     # A genuine installed consumer runs its existing tests independently.
     consumer_tests = _run("-m", "pytest", "-q", "tests", cwd=CONSUMER, env=env)

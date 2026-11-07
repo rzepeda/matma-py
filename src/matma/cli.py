@@ -1,7 +1,7 @@
 """Stable MATMA command-line surface for coding agents and human developers.
 
-The command implementations are deliberately unavailable during Phase 1.
-They return exit code 2 instead of pretending an index/scaffold exists.
+Phase 2 implements read-only AST validation. Index, scaffold and impact
+remain deliberately unavailable and return exit code 2.
 """
 
 from __future__ import annotations
@@ -12,6 +12,8 @@ import posixpath
 import sys
 from collections.abc import Sequence
 from typing import Any
+
+from matma.analysis import inspect_project
 
 import yaml
 
@@ -72,11 +74,13 @@ def make_parser() -> ArgumentParser:
     for command, (phase, description) in COMMAND_PHASES.items():
         p = subparsers.add_parser(
             command,
-            help=f"{description} (engine planned for Phase {phase})",
-            description=f"{description}: not implemented until Phase {phase}",
+            help=f"{description} ({'available' if command == 'validate' else f'planned for Phase {phase}'})",
+            description=f"{description}: {'read-only AST audit' if command == 'validate' else f'not implemented until Phase {phase}'}",
         )
         p.add_argument("-s", "--source-root", type=_root, default="src", help="production source root (default: src)")
         p.add_argument("-t", "--tests-root", type=_root, default="tests", help="test root (default: tests)")
+        p.add_argument("--extra-source-root", type=_root, action="append", default=[],
+                       help="additional production source root; may be repeated")
         p.add_argument("-o", "--format", choices=("text", "json", "yaml"), default="text", help="result format")
 
         if command in ("index", "scaffold", "validate", "impact"):
@@ -124,13 +128,20 @@ def _display(payload: dict[str, Any], output_format: str) -> None:
     else:
         cmd = payload["command"] or "cli"
         print(f"matma:{cmd} [{payload['status']}] {payload['message']} (exit {payload['exit_code']})")
+        if cmd == "validate" and "summary" in payload:
+            summary = payload["summary"]
+            print(f"  {summary['parsed_files']} modules, {summary['symbols']} symbols, "
+                  f"{summary['diagnostic_errors']} errors, {summary['diagnostic_warnings']} warnings")
+            for d in payload["diagnostics"]:
+                location = f"{d['file']}:{d['line'] or 1}" if d["file"] else "project"
+                print(f"  {location}: {d['severity']} {d['code']}: {d['message']}")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse arguments and return a meaningful process exit status.
 
-    Phase 1 never writes files, executes pytest, parses a project AST or builds
-    graph manifests. Later phases replace the respective command handlers.
+    Phase 2 validates source ASTs, read-only. It never writes files, executes
+    pytest, or builds graph manifests. Later phases add the other engines.
     """
     args = list(sys.argv[1:] if argv is None else argv)
     parser = make_parser()
@@ -147,6 +158,29 @@ def main(argv: Sequence[str] | None = None) -> int:
         payload = _result("impact", "invalid_options", "--target/-f is required for impact", EXIT_USAGE, options)
         _display(payload, namespace.format)
         return EXIT_USAGE
+
+    if namespace.command == "validate":
+        examined = inspect_project(
+            source_root=namespace.source_root,
+            tests_root=namespace.tests_root,
+            target=namespace.target,
+            extra_source_roots=tuple(namespace.extra_source_root),
+            explicitly_selected=any(arg in ("-s", "--source-root") or arg.startswith("--source-root=") or arg.startswith("-s=")
+                                    for arg in args),
+        )
+        error_count = examined["summary"]["diagnostic_errors"]
+        fatal = any(d["code"] in {"missing_source_root", "unsafe_source_root", "unsafe_tests_root"}
+                    for d in examined["diagnostics"])
+        failed = fatal or (namespace.check and error_count > 0)
+        payload = {
+            **_result("validate", "validation_failed" if failed else "validated",
+                      f"Inspected {examined['summary']['parsed_files']} Python modules; "
+                      f"{error_count} structural errors",
+                      EXIT_FAILURE if failed else EXIT_SUCCESS, options),
+            **examined,
+        }
+        _display(payload, namespace.format)
+        return payload["exit_code"]
 
     phase, description = COMMAND_PHASES[namespace.command]
     payload = _result(
