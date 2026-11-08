@@ -291,3 +291,21 @@ The package remains version `0.1.0.dev0` until a separately authorized release.
 On the synthetic 96-module Linux/Python 3.13 benchmark, the median full warm
 index was **1,173.3 ms**, versus **84.5 ms** for impact with freshness checks
 (**13.9×** in that fixture; not a performance guarantee).
+
+## Coding-agent skills: Claude, ChatGPT/Codex, Antigravity
+
+MATMA includes three independently installable agent skills with
+platform-specific instructions and a shared exact CLI contract:
+[skill distribution and setup](integrations/README.md),
+[Python project setup](integrations/PYTHON_PROJECT_SETUP.md).
+
+```bash
+python integrations/install_skills.py --project /path/to/python-project --platform all
+```
+
+The installer only copies skill instructions. Install the MATMA developer CLI
+separately in the consumer project's Python 3.11+ environment; it does not
+install or run application code. Claude Code uses `.claude/skills/matma-python`,
+while ChatGPT desktop/Codex and Antigravity use separately named directories
+under `.agents/skills`. A normal ChatGPT browser chat does not automatically
+load local Codex skills.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "MATMA Python"
+  short_description: "Index Python changes and select pytest tests"
+  default_prompt: "Use MATMA Python to validate and index this repository, scaffold tests if requested, and report impacted pytest files and missing coverage."
+policy:
+  allow_implicit_invocation: true
