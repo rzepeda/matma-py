@@ -5,27 +5,6 @@ module-mirrored tests and fast, persisted reverse-dependency impact selections.
 It adapts to the **host project's existing Python layout** rather than requiring
 one class per file or rewriting production source.
 
-## Status: Phase 6 — implementation complete; development release not published
-
-The installable Python package implements **`validate`** (read-only structural
-analysis), **`index`** (full AST dependency indexing and manifests), and
-**`scaffold`** (create missing pytest unit, interaction and centralized mock
-starter files). `index --scaffold` runs the same scaffold pipeline after full
-reindexing. **`impact`** reads persisted manifests, selects existing unit and
-interaction tests by reverse dependency level and separately reports explicitly
-registered business/regression paths. No command executes application code to
-analyze dependencies, executes tests, or rewrites production source.
-No complete MATMA release has been published.
-
-[Accepted architecture](AIDocumentation/ARCHITECTURE_DECISIONS.md) ·
-[Implementation checklist](AIDocumentation/TASKS.md) ·
-[Phase 1 implementation](AIDocumentation/PHASE_1_IMPLEMENTATION.md) ·
-[Phase 2 implementation](AIDocumentation/PHASE_2_IMPLEMENTATION.md) ·
-[Phase 3 implementation](AIDocumentation/PHASE_3_IMPLEMENTATION.md) ·
-[Phase 4 implementation](AIDocumentation/PHASE_4_IMPLEMENTATION.md) ·
-[Phase 5 implementation](AIDocumentation/PHASE_5_IMPLEMENTATION.md) ·
-[Phase 6 implementation](AIDocumentation/PHASE_6_IMPLEMENTATION.md)
-
 ## Compatibility
 
 - Python 3.11 or newer.
