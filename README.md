@@ -5,6 +5,43 @@ module-mirrored tests and fast, persisted reverse-dependency impact selections.
 It adapts to the **host project's existing Python layout** rather than requiring
 one class per file or rewriting production source.
 
+## The MATMA methodology
+
+**MATMA (Multi-Tiered Agentic Testing & Mock Architecture)** is a testing methodology and development-tool architecture designed for **test-driven development, refactoring, and coding-agent workflows**. It makes the relationship between production code, tests, mocks, and dependent components predictable, so a developer or AI agent can inspect a focused set of files and select relevant verification after a change. MATMA complements the application's existing test framework; it is **not a replacement test runner**.
+
+### Goals and expected benefits
+
+- **Deterministic discovery:** Resolve a source target's unit tests, interaction tests, mock helpers, and dependency manifest from a consistent mirrored layout instead of repeated repository-wide searches.
+- **Smaller agent context:** Keep test doubles centralized and dependency information on disk, so agents can retrieve task-relevant files and metadata rather than loading an entire codebase into the context window.
+- **Precise failure signals:** Separate isolated behavior tests from component interactions and broader workflows, making failures easier to diagnose and fixes easier to validate.
+- **Change-aware verification:** Use precomputed *reverse dependencies* to identify which consumers may be affected by a changed module or class, and expand the test scope only as needed.
+- **Non-destructive adoption:** Preserve the host project's production code, naming conventions, existing tests, and native runner. Generate only missing test/mock starters, and never mistake a placeholder for completed coverage.
+
+### Four complementary verification tiers
+
+| Tier | Responsibility |
+| --- | --- |
+| **Unit** | Verify one source target in isolation, mocking appropriate dependency boundaries. |
+| **Interaction** | Verify real interactions between the target and collaborating components, with controlled external boundaries. |
+| **Business** | Verify meaningful application workflows and business rules across components. |
+| **Regression** | Protect previously identified behavior and end-to-end scenarios, including relevant data or service integration. |
+
+Unit and interaction tests follow the source layout under `tests/unit/mirror/` and `tests/interaction/mirror/`. Reusable mock helpers live under `tests/mocks/mirror/`. Business and regression tests are **not automatically mirrored**: they remain developer-authored and can be associated with source targets through `tests/matma-verification.yaml`.
+
+### How MATMA works
+
+1. **Validate** the source layout and supported language conventions.
+2. **Index** source code using static AST analysis, compute the dependency graph and its reverse dependents, and persist generated `tests/mirror/**/*.auto.yaml` metadata. Generated manifests are regenerable and excluded from Git.
+3. **Scaffold, optionally,** missing unit/interaction tests and centralized mock helpers. New tests **fail deliberately** until real assertions are written; existing authored files are preserved.
+4. **Select impact** for a changed target using its persisted manifest. `--level 0` selects target unit verification; `--level 1` adds interaction tests and direct dependents; `--level 2+` expands to further impact. Python also includes import-only dependents at level 2.
+5. **Execute selected tests explicitly** with the project's normal runner (for example, `pytest` or `php artisan test`). Registered business/regression workflows are reported separately and are not run automatically.
+
+The key optimization is **index once, then query persisted impact metadata**: an impact query does not reparse the source AST or crawl the project to rebuild its dependency graph. Freshness checks still read or stat indexed source files, so the *entire* query is not a constant-time/O(1) operation. A missing or stale index requires explicit regeneration.
+
+### Language-native implementation, not forced restructuring
+
+MATMA's original blueprint emphasizes strict source/test mirroring, but each implementation follows its accepted architecture decisions. **Python** mirrors a source *module* and allows multiple classes and functions in one file; **PHP/Laravel** preserves PSR-4 names and class-file conventions. Neither implementation rewrites application source to impose a new layout. Static analysis cannot guarantee discovery of every dynamic/runtime relationship, and selecting a test does not prove that it passed. See the [language-specific architecture decisions](AIDocumentation/ARCHITECTURE_DECISIONS.md) for the exact contract.
+
 ## Compatibility
 
 - Python 3.11 or newer.
