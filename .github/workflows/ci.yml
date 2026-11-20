@@ -35,7 +35,7 @@ jobs:
           UV="$HOME/.local/bin/uv"
           test -x "$UV"
           "$UV" python install "${{ matrix.python-version }}"
-          "$UV" venv "$RUNNER_TEMP/matma-python-venv" --python "${{ matrix.python-version }}"
+          "$UV" venv "$RUNNER_TEMP/matma-python-venv" --python "${{ matrix.python-version }}" --seed
           echo "$RUNNER_TEMP/matma-python-venv/bin" >> "$GITHUB_PATH"
       - name: Install package and dev dependencies
         run: python -m pip install -e ".[dev]"
