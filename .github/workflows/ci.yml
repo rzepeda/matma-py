@@ -5,10 +5,15 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   package-and-consumer:
     name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
+    # Never execute pull request code on a persistent homeserver runner.
+    runs-on: ${{ fromJSON(matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request' && '["self-hosted","linux","x64","homeserver-ci-safe"]' || format('["{0}"]', matrix.os)) }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -16,9 +21,22 @@ jobs:
         python-version: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+        with:
+          persist-credentials: false
+      - name: Set up Python for GitHub-hosted PR and Windows jobs
+        if: runner.environment != 'self-hosted'
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Set up isolated Python for Debian 13 homeserver
+        if: runner.environment == 'self-hosted'
+        shell: bash
+        run: |
+          UV="$HOME/.local/bin/uv"
+          test -x "$UV"
+          "$UV" python install "${{ matrix.python-version }}"
+          "$UV" venv "$RUNNER_TEMP/matma-python-venv" --python "${{ matrix.python-version }}"
+          echo "$RUNNER_TEMP/matma-python-venv/bin" >> "$GITHUB_PATH"
       - name: Install package and dev dependencies
         run: python -m pip install -e ".[dev]"
       - name: Validate installed entry point
